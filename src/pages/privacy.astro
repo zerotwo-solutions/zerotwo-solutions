@@ -1,0 +1,151 @@
+---
+import Base from "../layouts/Base.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import { company } from "../data/site";
+import { abs, breadcrumbSchema, WEBSITE_ID } from "../lib/seo";
+
+const effective = "October 3, 2026";
+const effectiveIso = "2026-10-03";
+
+const title = "Privacy Policy";
+const description = `How ${company.name} handles the information you share through this website: what we collect, why, and how to ask us to delete it.`;
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Privacy policy", path: "/privacy/" },
+];
+
+const schema = [
+  {
+    "@type": "WebPage",
+    "@id": `${abs("/privacy/")}#webpage`,
+    url: abs("/privacy/"),
+    name: "Privacy policy",
+    description,
+    inLanguage: "en-US",
+    isPartOf: { "@id": WEBSITE_ID },
+    datePublished: effectiveIso,
+  },
+  breadcrumbSchema(crumbs),
+];
+---
+<Base title={title} description={description} schema={schema}>
+  <section class="section page-hero" aria-labelledby="privacy-title">
+    <div class="container hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Legal</span>
+      <h1 id="privacy-title" class="h1">Privacy policy</h1>
+      <p class="lead">The short version: we collect what you send us, use it only to reply, and never sell it.</p>
+      <p class="subtle meta">Effective <time datetime={effectiveIso}>{effective}</time></p>
+    </div>
+  </section>
+
+  <section class="section section--border section--tight">
+    <div class="container">
+      <article class="prose">
+        <p>
+          This policy explains how {company.name} ("we", "us") handles information collected through
+          <a href="/">{company.url.replace(/^https?:\/\//, "")}</a> (the "site"). It applies to this marketing site only.
+          Work we do for clients is covered by the contracts we sign with them.
+        </p>
+
+        <h2>Information we collect</h2>
+        <h3>Information you give us</h3>
+        <p>When you use the contact form or email us, we receive the details you choose to share, which may include:</p>
+        <ul>
+          <li>your name, work email address and company name;</li>
+          <li>your company website, if you provide it;</li>
+          <li>your project type, budget range, timeline and message;</li>
+          <li>a project plan summary, if you arrived from our project estimator.</li>
+        </ul>
+        <p>Please do not send confidential or sensitive information through the form. If a project needs it, we will sign an NDA first and agree on a secure way to share it.</p>
+
+        <h3>Information collected automatically</h3>
+        <p>
+          Like most websites, the servers that host this site may record standard technical logs, such as IP address,
+          browser type, the pages requested and the time of the request. These logs are used to keep the site secure and
+          working, and are not used to build profiles of individual visitors.
+        </p>
+
+        <h2>Cookies and tracking</h2>
+        <p>
+          We do not use advertising cookies, third-party advertising trackers or cross-site tracking. We do not sell or
+          share your information for targeted advertising. If we ever add analytics, we will choose a privacy-respecting
+          option and update this policy first.
+        </p>
+
+        <h2>How we use your information</h2>
+        <p>We use the information you send us only to:</p>
+        <ul>
+          <li>reply to your inquiry and arrange a discovery call;</li>
+          <li>prepare a technical roadmap or proposal you asked for;</li>
+          <li>keep a record of our conversation if we go on to work together.</li>
+        </ul>
+        <p>We do not add you to a marketing list without your permission, and we do not sell your personal information.</p>
+
+        <h2>Who we share it with</h2>
+        <p>
+          We share information only with service providers that help us run the site and our email, such as our hosting,
+          email and form-processing providers, and only so they can provide that service to us. We may also disclose
+          information if required by law. We do not share it with anyone for their own marketing.
+        </p>
+
+        <h2>How long we keep it</h2>
+        <p>
+          We keep inquiry emails and form submissions for as long as they are useful for our conversation with you and
+          for normal business records, and delete them when they are no longer needed or when you ask us to.
+        </p>
+
+        <h2>Your choices and rights</h2>
+        <p>
+          You can ask us at any time to access, correct or delete the personal information we hold about you. Depending
+          on where you live, you may have additional rights under local privacy laws. Email
+          <a href={`mailto:${company.email}`}>{company.email}</a> with the subject "Privacy request" and we will respond
+          promptly. We will not treat you differently for making a request.
+        </p>
+
+        <h2>Security</h2>
+        <p>
+          We use reasonable safeguards, such as encrypted connections (HTTPS), access controls and multi-factor
+          authentication on the accounts that hold your information. No method of transmission or storage is completely
+          secure, but we work to protect what you share with us.
+        </p>
+
+        <h2>International visitors</h2>
+        <p>
+          We are a remote-first team, so information you send us may be processed in countries other than the one you
+          live in. We handle it as described in this policy wherever it is processed.
+        </p>
+
+        <h2>Children</h2>
+        <p>This site is intended for businesses and is not directed to children under 16. We do not knowingly collect their information.</p>
+
+        <h2>Changes to this policy</h2>
+        <p>If we change this policy, we will update it on this page and change the effective date above.</p>
+
+        <h2>Contact</h2>
+        <p>
+          Questions about privacy or this policy? Email <a href={`mailto:${company.email}`}>{company.email}</a>.
+        </p>
+      </article>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-hero {
+    padding-block: calc(var(--section-y) * 0.7) calc(var(--section-y) * 0.5);
+  }
+  .hero-inner {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .meta {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+  }
+  .prose > h2:first-of-type {
+    margin-top: 1.6em;
+  }
+</style>

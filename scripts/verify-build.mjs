@@ -69,7 +69,7 @@ for (const file of pages) {
 }
 
 for (const [t, list] of titles) if (list.length > 1) errors.push(`duplicate title "${t}" on ${list.join(", ")}`);
-for (const [d, list] of descs) if (list.length > 1) errors.push(`duplicate description on ${list.join(", ")}`);
+for (const [, list] of descs) if (list.length > 1) errors.push(`duplicate description on ${list.join(", ")}`);
 
 // Personal identifiers must not leak into any shipped text asset either
 for (const f of files.filter((f) => /\.(js|css|txt|xml|json)$/.test(f))) {

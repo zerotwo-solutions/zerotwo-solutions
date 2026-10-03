@@ -1,0 +1,144 @@
+---
+import Base from "../../layouts/Base.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import CaseCard from "../../components/CaseCard.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import Icon from "../../components/Icon.astro";
+import { caseStudies, moreWork, company } from "../../data/site";
+import { abs, breadcrumbSchema } from "../../lib/seo";
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Work", path: "/work/" },
+];
+
+const [featured, ...rest] = caseStudies;
+
+const schema = [
+  breadcrumbSchema(crumbs),
+  {
+    "@type": "ItemList",
+    "@id": `${abs("/work/")}#case-studies`,
+    name: `${company.name} case studies`,
+    numberOfItems: caseStudies.length,
+    itemListElement: caseStudies.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.title,
+      url: abs(`/work/${c.slug}/`),
+    })),
+  },
+];
+---
+<Base
+  title="Case Studies: AI Agents & FinTech Systems"
+  description="Case studies of AI agents, MCP servers, real-time options market data pipelines and voice AI we built and run in production, with architecture, stack and results."
+  schema={schema}
+>
+  <section class="section work-hero">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container work-hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Case studies</span>
+      <h1 class="h1">Case studies: AI and FinTech systems <span class="gradient-text">in production</span></h1>
+      <p class="lead">
+        How we built an AI research agent, a 105-tool MCP server, an options market data pipeline and a real-time voice
+        assistant. Each study covers the problem, the architecture, the stack and the numbers from the shipped system.
+      </p>
+      <p class="nda-note">
+        <Icon name="lock" size={16} />
+        <span>Client names and identifying details are withheld under NDA. We are happy to walk through the architecture in more depth on a call.</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="case-list">
+    <div class="container">
+      <h2 id="case-list" class="sr-only">All case studies</h2>
+      {featured && (
+        <div class="featured" data-reveal>
+          <CaseCard study={featured} featured />
+        </div>
+      )}
+      <ul class="grid grid-3 case-grid" role="list">
+        {rest.map((study, i) => (
+          <li data-reveal style={`--reveal-delay:${i * 80}ms`}>
+            <CaseCard study={study} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border">
+    <div class="container">
+      <SectionHeader
+        eyebrow="More work"
+        title="More projects we have shipped"
+        lead="A selection of other production systems across real-time data, generative AI, mobile and SaaS."
+      />
+      <ul class="grid grid-3" role="list">
+        {moreWork.map((w, i) => (
+          <li class="card more-card" data-reveal style={`--reveal-delay:${(i % 3) * 80}ms`}>
+            <h3 class="h3">{w.title}</h3>
+            <p>{w.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Have a similar system to build?" />
+</Base>
+
+<style>
+  .work-hero {
+    overflow: hidden;
+    padding-bottom: calc(var(--section-y) * 0.6);
+  }
+  .work-hero-inner {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+  }
+  .work-hero-inner .h1 {
+    max-width: 20ch;
+  }
+  .nda-note {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    max-width: 62ch;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .nda-note :global(svg) {
+    flex: none;
+    margin-top: 3px;
+    color: var(--accent-2);
+  }
+  .featured {
+    margin-bottom: var(--space-5);
+  }
+  .case-grid > li {
+    display: flex;
+  }
+  .case-grid > li > :global(*) {
+    flex: 1;
+  }
+  .more-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .more-card p {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+</style>

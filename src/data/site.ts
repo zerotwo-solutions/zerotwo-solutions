@@ -71,7 +71,7 @@ export const services: Service[] = [
     h1: "AI agent development for products that ship",
     metaTitle: "AI Agent Development Company | Claude, Bedrock & LangGraph",
     metaDescription:
-      "We build production AI agents on Claude, AWS Bedrock, OpenAI and Gemini: tool calling, RAG, guardrails, LangFuse tracing and per-request cost metering. Get a technical roadmap in 48 hours.",
+      "We build production AI agents on Claude, AWS Bedrock, OpenAI and Gemini with tool calling, RAG, guardrails, tracing and cost metering. Roadmap in 48 hours.",
     icon: "agent",
     answer:
       "ZeroTwo Solutions builds AI agents that run in production, not demos. We design the agent loop, tool layer, memory and guardrails, then ship with streaming, tracing, evaluation and per-request cost metering. Our agents run on Anthropic Claude, AWS Bedrock, OpenAI and Gemini using LangGraph, DeepAgents and native tool calling.",
@@ -111,7 +111,7 @@ export const services: Service[] = [
     h1: "MCP server development: connect AI agents to your product",
     metaTitle: "MCP Server Development | Model Context Protocol Experts",
     metaDescription:
-      "We design and build Model Context Protocol (MCP) servers with typed tools, approval gates and auth so Claude and other AI agents can safely use your product. 105-tool MCP server shipped.",
+      "We build Model Context Protocol (MCP) servers with typed tools, approval gates and auth so Claude and other AI agents can safely use your product.",
     icon: "mcp",
     answer:
       "An MCP (Model Context Protocol) server exposes your product's capabilities as typed tools that AI assistants like Claude can discover and call. ZeroTwo Solutions builds MCP servers with grouped tools, input validation, authentication and a single approval gateway for destructive actions. We shipped a 105-tool MCP server that lets an AI agent operate live trading charts.",
@@ -151,7 +151,7 @@ export const services: Service[] = [
     h1: "FinTech software development for real-time markets",
     metaTitle: "FinTech Software Development Company | Real-Time Market Data",
     metaDescription:
-      "FinTech software development for trading and analytics products: OPRA options feeds, dark pool data, Redis Streams pipelines, WebSocket fan-out and Stripe subscriptions. Built for US markets.",
+      "FinTech software for trading and analytics: OPRA options feeds, dark pool data, Redis Streams pipelines, WebSocket fan-out and Stripe billing.",
     icon: "chart",
     answer:
       "ZeroTwo Solutions builds FinTech platforms that process live market data without dropping messages. We have shipped pipelines that ingest the US options (OPRA) firehose and dark pool trades into Redis Streams, analytics platforms with 130+ live pages over 100+ WebSocket routes, and subscription billing on Stripe.",
@@ -191,7 +191,7 @@ export const services: Service[] = [
     h1: "SaaS development on AWS, built to scale from day one",
     metaTitle: "SaaS Development Company | AWS, Django, React & Kubernetes",
     metaDescription:
-      "Full-stack SaaS development on AWS: Django, FastAPI, React, Next.js, PostgreSQL, Docker and Kubernetes with CI/CD, monitoring and security baked in. MVP to enterprise scale.",
+      "Full-stack SaaS development on AWS with Django, FastAPI, React, Next.js, PostgreSQL, Docker and Kubernetes. CI/CD, monitoring and security built in.",
     icon: "cloud",
     answer:
       "ZeroTwo Solutions builds SaaS products end to end: Python and Django or FastAPI backends, React and Next.js frontends, PostgreSQL and Redis, deployed on AWS with Docker, Kubernetes, CI/CD and monitoring. We take products from MVP to scale and harden existing platforms for performance and reliability.",
@@ -231,7 +231,7 @@ export const services: Service[] = [
     h1: "Voice AI development for real-time assistants",
     metaTitle: "Voice AI Development | Real-Time Voice Agents with Tools",
     metaDescription:
-      "We build real-time voice AI assistants with Gemini Live and ElevenLabs: live transcripts, concurrent tool calls, usage metering and spend caps, covered by 1,500+ automated tests.",
+      "Real-time voice AI assistants with Gemini Live and ElevenLabs: live transcripts, concurrent tool calls, usage metering, spend caps and 1,500+ tests.",
     icon: "voice",
     answer:
       "ZeroTwo Solutions builds real-time voice AI assistants that talk, listen and take action. We put voice engines like Gemini Live and ElevenLabs behind one provider-independent interface, run a turn's tool calls concurrently to keep replies fast, and meter usage with spend caps and prepaid credits.",
@@ -288,7 +288,7 @@ export const caseStudies: CaseStudy[] = [
     summary:
       "A subscription analytics platform with 130+ live pages for options flow, dark pool and volatility data, plus an AI research agent on Claude via AWS Bedrock.",
     metaDescription:
-      "Case study: an options analytics SaaS with 130+ live pages over 100+ WebSocket routes and an AI research agent on Claude via AWS Bedrock with 16 tools and LangFuse tracing.",
+      "Case study: options analytics SaaS with 130+ live pages over 100+ WebSocket routes and an AI research agent on Claude via AWS Bedrock with 16 tools.",
     challenge:
       "Traders needed answers about live options flow faster than they could click through dashboards, and the business needed an AI feature it could trust with numbers and afford at scale.",
     solution: [
@@ -317,7 +317,7 @@ export const caseStudies: CaseStudy[] = [
     summary:
       "A market data pipeline that ingests the US options (OPRA) firehose and dark pool trades without dropping messages during market-open bursts.",
     metaDescription:
-      "Case study: an OPRA options and dark pool pipeline on Redis Streams with a 50,000-item bounded queue, 5,000-message batch writes, 200 ms burst detection and self-healing feeds.",
+      "Case study: OPRA options and dark pool pipeline on Redis Streams with a 50k bounded queue, 5,000-message batch writes and self-healing feeds.",
     challenge:
       "Market open produces violent traffic bursts. The previous approach dropped messages and stalled silently, so dashboards showed stale or incomplete flow at the moments traders cared about most.",
     solution: [
@@ -346,7 +346,7 @@ export const caseStudies: CaseStudy[] = [
     summary:
       "A cross-platform Electron app where an AI agent reads and controls live TradingView charts through a 105-tool MCP server.",
     metaDescription:
-      "Case study: a cross-platform Electron AI assistant with a 105-tool MCP server over the Chrome DevTools Protocol, multi-provider tool calling and signed macOS and Windows builds.",
+      "Case study: cross-platform Electron AI assistant with a 105-tool MCP server, multi-provider tool calling and signed macOS and Windows builds.",
     challenge:
       "Traders wanted to ask for an analysis and have it happen on their chart: read indicators, switch symbols, draw levels and set alerts, without giving an AI uncontrolled access to their workspace.",
     solution: [

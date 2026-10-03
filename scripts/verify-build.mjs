@@ -27,7 +27,8 @@ for (const file of pages) {
   const rel = relative(DIST, file);
   const html = await readFile(file, "utf8");
   const is404 = rel.startsWith("404");
-  const get = (re) => (html.match(re) || [])[1];
+  const decode = (s) => s?.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+  const get = (re) => decode((html.match(re) || [])[1]);
 
   const title = get(/<title>([^<]*)<\/title>/);
   const desc = get(/<meta name="description" content="([^"]*)"/);

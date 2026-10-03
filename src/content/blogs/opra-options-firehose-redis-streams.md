@@ -1,5 +1,6 @@
 ---
 title: "Ingesting the OPRA options firehose with Redis Streams without dropping messages"
+seoTitle: "Ingesting the OPRA Options Firehose with Redis Streams"
 description: "How we ingest US options (OPRA) data on Redis Streams: bounded queues, pipelined batch writes, two-tier trade sentiment, burst detection and self-healing feeds."
 pubDate: 2026-07-08
 tags: ["Market data", "Redis Streams", "Python", "FinTech", "Real-time"]

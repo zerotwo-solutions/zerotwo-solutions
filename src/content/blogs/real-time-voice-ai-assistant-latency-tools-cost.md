@@ -1,5 +1,6 @@
 ---
 title: "Building a real-time voice AI assistant: latency, tools and cost control"
+seoTitle: "Real-Time Voice AI: Latency, Tools and Cost Control"
 description: "How we built a real-time voice AI assistant with Gemini Live and ElevenLabs: a provider-independent WebSocket layer, 56 concurrent tools and hard spend caps."
 pubDate: 2026-09-15
 tags: ["Voice AI", "Gemini Live", "ElevenLabs", "Django Channels", "asyncio"]

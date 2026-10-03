@@ -1,5 +1,6 @@
 ---
 title: "What is an MCP server? A practical guide from building one with 105 tools"
+seoTitle: "What Is an MCP Server? Lessons from Building 105 Tools"
 description: "MCP explained by a team that shipped a 105-tool server: how the protocol works, how to name and group tools, and how to gate destructive actions safely."
 pubDate: 2026-05-12
 tags: ["MCP", "AI agents", "Tool calling", "Electron", "Claude"]

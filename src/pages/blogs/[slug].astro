@@ -79,10 +79,11 @@ const schema = [
 ];
 
 // Long headlines read better without the brand suffix in search results.
-const rawTitle = data.title.length > 48;
+const metaTitle = data.seoTitle ?? data.title;
+const rawTitle = metaTitle.length > 48;
 ---
 <Base
-  title={data.title}
+  title={metaTitle}
   rawTitle={rawTitle}
   description={data.description}
   type="article"

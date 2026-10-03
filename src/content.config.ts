@@ -6,6 +6,8 @@ const blogs = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/blogs" }),
   schema: z.object({
     title: z.string().min(10).max(110),
+    /** Shorter <title> for search results when the headline exceeds ~60 characters. */
+    seoTitle: z.string().max(60).optional(),
     /** Meta description and article lead. Kept within search snippet length. */
     description: z.string().min(50).max(160),
     pubDate: z.coerce.date(),

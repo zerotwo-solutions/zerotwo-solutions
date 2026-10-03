@@ -1,20 +1,73 @@
-// Generates brand raster assets (OG image, PNG icons, favicon.ico) from SVG.
+// Generates brand raster assets from the official ZeroTwo logo (public/assets/img/newLogo1.svg):
+//   - public/brand/logo-dark.webp        full logo with tagline, black parts recolored white for dark UI
+//   - public/brand/logo-dark-compact.webp same, without the tagline (navbar size)
+//   - icons (apple-touch, 192, 512, maskable), schema logo.png: the "2" mark on white, matching favicon.ico
+//   - og.png social card with the dark logo
 // Run with `npm run og` after changing the logo or OG copy. Outputs are committed to /public.
+// favicon.ico is the original brand favicon and is not regenerated.
 // Text renders with the system "Inter" font if installed (falls back to sans-serif).
 import sharp from "sharp";
-import { writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 
-const out = (f) => new URL(`../public/${f}`, import.meta.url);
+const out = (f) => new URL(`../public/${f}`, import.meta.url).pathname;
+const SOURCE = out("assets/img/newLogo1.svg");
+await mkdir(out("brand"), { recursive: true });
 
-const mark = (size, pad = 0) => `
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${-pad} ${-pad} ${32 + pad * 2} ${32 + pad * 2}">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-    <stop stop-color="#a99bff"/><stop offset="1" stop-color="#4fd1c5"/></linearGradient></defs>
-  <rect x="${-pad}" y="${-pad}" width="${32 + pad * 2}" height="${32 + pad * 2}" fill="#08090a"/>
-  <rect x="1" y="1" width="30" height="30" rx="8" fill="#0d0e11" stroke="url(#g)" stroke-opacity=".7"/>
-  <path d="M9 10h9l-9 12h9" fill="none" stroke="url(#g)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="22.5" cy="16" r="3.2" fill="none" stroke="#f7f8f8" stroke-width="2"/>
-</svg>`;
+// Render the source logo (960x384 viewport) at high resolution with a transparent background.
+const W = 2400;
+const { data, info } = await sharp(SOURCE, { density: (W / 960) * 72 })
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true });
+const { width, height } = info;
+
+const fromRaw = (buf) => sharp(buf, { raw: { width, height, channels: 4 } });
+
+// Dark-UI variant: near-black pixels become off-white; the brand blue is untouched.
+const dark = Buffer.from(data);
+for (let i = 0; i < dark.length; i += 4) {
+  if (dark[i + 3] > 0 && Math.max(dark[i], dark[i + 1], dark[i + 2]) < 90) {
+    dark[i] = 247;
+    dark[i + 1] = 248;
+    dark[i + 2] = 248;
+  }
+}
+
+// Compact variant: drop the tagline ("Your Business, Our Solutions !!") which is unreadable at navbar size.
+// It sits right of the mark, below "SOLUTIONS" (fractions of the 960x384 artboard).
+const compact = Buffer.from(dark);
+for (let y = Math.round(height * 0.67); y < Math.round(height * 0.8); y++) {
+  for (let x = Math.round(width * 0.385); x < width; x++) compact[(y * width + x) * 4 + 3] = 0;
+}
+
+const logoDark = await fromRaw(dark).trim().resize({ height: 160 }).webp({ quality: 92, alphaQuality: 100 }).toBuffer();
+const logoCompact = await fromRaw(compact).trim().resize({ height: 120 }).webp({ quality: 92, alphaQuality: 100 }).toBuffer();
+await sharp(logoDark).toFile(out("brand/logo-dark.webp"));
+await sharp(logoCompact).toFile(out("brand/logo-dark-compact.webp"));
+const meta = async (b) => sharp(b).metadata();
+const [m1, m2] = [await meta(logoDark), await meta(logoCompact)];
+console.log(`logo-dark.webp ${m1.width}x${m1.height}, logo-dark-compact.webp ${m2.width}x${m2.height}`);
+
+// The "2" mark in original colors, cropped square from the artboard.
+const side = Math.round(width * 0.33);
+const markSrc = await fromRaw(data)
+  .extract({ left: Math.round(width * 0.04), top: Math.max(0, Math.round(height * 0.494 - side / 2)), width: side, height: Math.min(side, height) })
+  .png()
+  .toBuffer();
+
+const iconOnWhite = async (size, padRatio, file) => {
+  const inner = Math.round(size * (1 - padRatio * 2));
+  const markPng = await sharp(markSrc).resize(inner, inner, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).toBuffer();
+  await sharp({ create: { width: size, height: size, channels: 4, background: "#ffffff" } })
+    .composite([{ input: markPng, gravity: "center" }])
+    .png({ compressionLevel: 9 })
+    .toFile(out(file));
+};
+await iconOnWhite(512, 0.08, "logo.png");
+await iconOnWhite(180, 0.1, "apple-touch-icon.png");
+await iconOnWhite(192, 0.08, "icon-192.png");
+await iconOnWhite(512, 0.08, "icon-512.png");
+await iconOnWhite(512, 0.2, "icon-maskable-512.png");
 
 // Dot field echoing the hero's 3D "signal field"
 let dots = "";
@@ -41,33 +94,17 @@ const og = `
   <rect width="1200" height="630" fill="url(#glow)"/>
   ${dots}
   <rect width="1200" height="630" fill="url(#fade)"/>
-  <g transform="translate(72 72) scale(1.6)">
-    <rect x="1" y="1" width="30" height="30" rx="8" fill="#0d0e11" stroke="url(#txt)" stroke-opacity=".7"/>
-    <path d="M9 10h9l-9 12h9" fill="none" stroke="url(#txt)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="22.5" cy="16" r="3.2" fill="none" stroke="#f7f8f8" stroke-width="2"/>
-  </g>
-  <text x="140" y="111" font-family="Inter, sans-serif" font-size="30" font-weight="650" fill="#f7f8f8" letter-spacing="-0.5">ZeroTwo <tspan fill="#8a8f98" font-weight="500">Solutions</tspan></text>
-  <text x="72" y="250" font-family="Inter, sans-serif" font-size="72" font-weight="650" fill="#f7f8f8" letter-spacing="-2.6">AI agents and real-time</text>
-  <text x="72" y="332" font-family="Inter, sans-serif" font-size="72" font-weight="650" fill="url(#txt)" letter-spacing="-2.6">FinTech products that ship.</text>
-  <text x="72" y="400" font-family="Inter, sans-serif" font-size="28" font-weight="450" fill="#b4b8c1">Claude &amp; Bedrock agents · MCP servers · Market data · SaaS on AWS</text>
+  <text x="72" y="270" font-family="Inter, sans-serif" font-size="72" font-weight="650" fill="#f7f8f8" letter-spacing="-2.6">AI agents and real-time</text>
+  <text x="72" y="352" font-family="Inter, sans-serif" font-size="72" font-weight="650" fill="url(#txt)" letter-spacing="-2.6">FinTech products that ship.</text>
+  <text x="72" y="420" font-family="Inter, sans-serif" font-size="28" font-weight="450" fill="#b4b8c1">Claude &amp; Bedrock agents · MCP servers · Market data · SaaS on AWS</text>
   <rect x="72" y="520" width="330" height="48" rx="24" fill="#f7f8f8"/>
   <text x="237" y="551" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#08090a">zerotwosolutions.com</text>
 </svg>`;
 
-await sharp(Buffer.from(og)).png({ compressionLevel: 9 }).toFile(out("og.png").pathname);
-await sharp(Buffer.from(mark(512))).png().toFile(out("logo.png").pathname);
-await sharp(Buffer.from(mark(180, 3))).png().toFile(out("apple-touch-icon.png").pathname);
-await sharp(Buffer.from(mark(192))).png().toFile(out("icon-192.png").pathname);
-await sharp(Buffer.from(mark(512))).png().toFile(out("icon-512.png").pathname);
-await sharp(Buffer.from(mark(512, 6))).png().toFile(out("icon-maskable-512.png").pathname);
+const ogLogo = await sharp(logoCompact).resize({ height: 84 }).toBuffer();
+await sharp(Buffer.from(og))
+  .composite([{ input: ogLogo, left: 64, top: 64 }])
+  .png({ compressionLevel: 9 })
+  .toFile(out("og.png"));
 
-// favicon.ico: single 32x32 PNG-encoded ICO entry (supported by all modern browsers)
-const png32 = await sharp(Buffer.from(mark(32))).png().toBuffer();
-const header = Buffer.alloc(22);
-header.writeUInt16LE(0, 0); header.writeUInt16LE(1, 2); header.writeUInt16LE(1, 4);
-header.writeUInt8(32, 6); header.writeUInt8(32, 7); header.writeUInt8(0, 8); header.writeUInt8(0, 9);
-header.writeUInt16LE(1, 10); header.writeUInt16LE(32, 12);
-header.writeUInt32LE(png32.length, 14); header.writeUInt32LE(22, 18);
-await writeFile(out("favicon.ico"), Buffer.concat([header, png32]));
-await writeFile(out("favicon.svg"), mark(32).replace(/<rect x="0" y="0"[^>]*\/>/, "").replace(/<rect x="-?0" y="-?0" width="32" height="32" fill="#08090a"\/>/, ""));
-console.log("Generated og.png, logo.png, icons, favicon.ico, favicon.svg");
+console.log("Generated brand logos, og.png, logo.png and icons");

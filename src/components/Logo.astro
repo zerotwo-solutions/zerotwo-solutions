@@ -1,14 +1,17 @@
 ---
-interface Props { size?: number }
-const { size = 28 } = Astro.props;
+// Official ZeroTwo logo (dark-UI variant generated from public/assets/img/newLogo1.svg by `npm run og`).
+// "compact" omits the tagline for the navbar; "full" keeps it.
+interface Props { variant?: "compact" | "full"; height?: number; eager?: boolean }
+const { variant = "compact", height = 36, eager = false } = Astro.props;
+const src = variant === "full" ? "/brand/logo-dark.webp" : "/brand/logo-dark-compact.webp";
+const ratio = variant === "full" ? 477 / 160 : 357 / 120;
 ---
-<svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-  <defs>
-    <linearGradient id="zt-g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#a99bff" /><stop offset="1" stop-color="#4fd1c5" />
-    </linearGradient>
-  </defs>
-  <rect x="1" y="1" width="30" height="30" rx="8" fill="#0d0e11" stroke="url(#zt-g)" stroke-opacity=".6" />
-  <path d="M9 10h9l-9 12h9" fill="none" stroke="url(#zt-g)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="22.5" cy="16" r="3.2" fill="none" stroke="#f7f8f8" stroke-width="2" />
-</svg>
+<img
+  src={src}
+  width={Math.round(height * ratio)}
+  height={height}
+  alt="ZeroTwo Solutions"
+  decoding="async"
+  loading={eager ? "eager" : "lazy"}
+  fetchpriority={eager ? "high" : "auto"}
+/>

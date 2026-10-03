@@ -1,0 +1,625 @@
+---
+// "Talk to our agent": a scripted, deterministic demo. Every fact in the answers is
+// derived from src/data/site.ts. One completed exchange is server-rendered for SEO/no-JS.
+import { caseBySlug, process as processSteps, serviceBySlug, services } from "../../data/site";
+import type { AgentData, Scenario } from "../../scripts/agent-console";
+import SectionHeader from "../SectionHeader.astro";
+
+const must = <T,>(v: T | undefined, what: string): T => {
+  if (!v) throw new Error(`AgentConsole: missing ${what} in site.ts`);
+  return v;
+};
+const svc = (slug: string) => must(serviceBySlug(slug), `service ${slug}`);
+const cs = (slug: string) => must(caseBySlug(slug), `case study ${slug}`);
+const result = (slug: string, label: string) => must(cs(slug).results.find((r) => r.label === label), `${slug}:${label}`).value;
+const stepTime = (title: string) => must(processSteps.find((p) => p.title === title), `process ${title}`).time;
+const stackPreview = (stack: string[], n = 5) => `stack: ${stack.slice(0, n).join(", ")}${stack.length > n ? ` +${stack.length - n}` : ""}`;
+
+const agentSvc = svc("ai-agent-development");
+const mcpSvc = svc("mcp-server-development");
+const saasSvc = svc("saas-development");
+const voiceSvc = svc("voice-ai-development");
+const research = cs("ai-options-analytics-platform");
+const opra = cs("real-time-options-flow-pipeline");
+const desktop = cs("ai-desktop-trading-assistant");
+const voice = cs("voice-ai-trading-assistant");
+
+const roadmap = stepTime("Technical roadmap");
+const pilot = stepTime("Pilot sprint");
+const call = stepTime("Discovery call");
+const cta = { label: "→ Get this as a written roadmap", href: "/contact/" };
+
+const scenarios: Scenario[] = [
+  {
+    id: "agent",
+    chip: "Scope an AI agent for my SaaS",
+    prompt: "Scope an AI agent for my SaaS",
+    keywords: [["agent", 3], ["ai agent", 2], ["llm", 2], ["claude", 2], ["bedrock", 2], ["openai", 2], ["gpt", 2], ["gemini", 1], ["rag", 2], ["chatbot", 3], ["copilot", 3], ["assistant", 2], ["langgraph", 2], ["langchain", 2], ["ai", 1], ["saas", 1], ["hallucinate", 2], ["guardrail", 2]],
+    tools: [
+      {
+        name: "search_case_studies",
+        args: 'query="ai agent saas"',
+        result: `2 matches: AI research agent (${result(research.slug, "agent tools")} tools, ${result(research.slug, "agent versions shipped")} versions) · Voice AI assistant (${result(voice.slug, "voice-callable tools")} tools)`,
+      },
+      { name: "get_service", args: `slug="${agentSvc.slug}"`, result: stackPreview(agentSvc.stack) },
+    ],
+    thinking: { label: "Mapping your product's actions to typed tools", seconds: 1.4 },
+    intro:
+      "Start with one deep agent on Claude via AWS Bedrock that calls your product through typed, permission-checked tools. Anything numeric runs in a deterministic engine the agent calls as a tool, so figures are never hallucinated. It ships with streaming, LangFuse tracing, an evaluation set and per-request cost metering from day one.",
+    flow: ["Your app", "WebSocket streaming", "Agent loop · Claude on Bedrock", "5–15 typed tools", "Postgres state", "LangFuse traces"],
+    timeline: [
+      ["Technical roadmap", roadmap],
+      ["Discovery sprint", "1–2 weeks · architecture, tool list, eval set, prototype on your data"],
+      ["Production pilot", "4–8 weeks for a focused agent with 5–15 tools"],
+      ["After launch", "Weekly demos, regression evals on every release"],
+    ],
+    proof: `Shipped before: an AI research agent on Claude via AWS Bedrock with ${result(research.slug, "agent tools")} tools, taken through ${result(research.slug, "agent versions shipped")} versions in production.`,
+    cta,
+  },
+  {
+    id: "mcp",
+    chip: "Build an MCP server for our API",
+    prompt: "Build an MCP server for our API",
+    keywords: [["mcp", 4], ["model context protocol", 4], ["tool", 1], ["api", 2], ["claude desktop", 3], ["claude code", 3], ["server", 1], ["integration", 1], ["connector", 2], ["plugin", 1]],
+    tools: [
+      {
+        name: "search_case_studies",
+        args: 'query="mcp"',
+        result: `1 match: AI desktop assistant, ${result(desktop.slug, "MCP tools")} tools in ${result(desktop.slug, "tool groups")} groups`,
+      },
+      { name: "get_service", args: `slug="${mcpSvc.slug}"`, result: stackPreview(mcpSvc.stack) },
+    ],
+    thinking: { label: "Grouping your API into tools a model picks on the first try", seconds: 1.1 },
+    intro:
+      "We map your API into well-named tool groups with input schemas, then ship a production MCP server with auth, rate limits and logging. Anything that writes, deletes or spends money goes through one approval gateway with an audit log, so Claude Desktop, Claude Code and any MCP-compatible agent can use your product safely.",
+    flow: ["Claude Desktop / Claude Code", "MCP server", "Auth + schema validation", "Approval gateway", "Your API", "Audit log"],
+    timeline: [
+      ["Technical roadmap", roadmap],
+      ["Pilot sprint", `${pilot} · first tool group working against your API`],
+      ["Build & ship", "Weekly demos · versioned, tested tool contracts"],
+    ],
+    proof: `Shipped before: a ${result(desktop.slug, "MCP tools")}-tool MCP server in ${result(desktop.slug, "tool groups")} groups that lets an AI agent operate live trading charts, with approval for destructive actions.`,
+    cta,
+  },
+  {
+    id: "market",
+    chip: "Stream US options data in real time",
+    prompt: "Stream US options data in real time",
+    keywords: [["options", 3], ["opra", 4], ["market data", 4], ["real-time", 2], ["realtime", 2], ["real time", 2], ["stream", 2], ["streaming", 2], ["trading", 2], ["stock", 2], ["dark pool", 3], ["websocket", 2], ["fintech", 2], ["ticker", 2], ["quote", 2], ["feed", 2], ["redis", 2], ["burst", 2]],
+    tools: [
+      { name: "search_case_studies", args: 'query="opra real-time"', result: `1 match: ${opra.title}` },
+      {
+        name: "get_case_study",
+        args: `slug="${opra.slug}"`,
+        result: opra.results.map((r) => `${r.value} ${r.label}`).join(" · "),
+      },
+    ],
+    thinking: { label: "Sizing for the market-open burst, not the average minute", seconds: 1.3 },
+    intro:
+      "Ingest the vendor's OPRA feed into a bounded queue, write to Redis Streams in pipelined batches and aggregate in 60-second windows across parallel jobs. Burst detection on 200 ms buckets, alerts on any dropped message and self-healing feeds keep dashboards live exactly when traders are watching.",
+    flow: opra.flow,
+    timeline: [
+      ["Technical roadmap", roadmap],
+      ["Pilot sprint", `${pilot} · one feed end to end on your infrastructure`],
+      ["Build & ship", "Weekly demos · dashboards, alerts and Stripe tiers if you need them"],
+    ],
+    proof: `Shipped before: an OPRA and dark pool pipeline with a 50,000-item bounded queue, 5,000-message batch writes and automatic feed recovery in ${result(opra.slug, "automatic feed recovery")}.`,
+    cta,
+  },
+  {
+    id: "rescue",
+    chip: "Rescue our slow Django app",
+    prompt: "Rescue our slow Django app",
+    keywords: [["django", 3], ["slow", 3], ["performance", 3], ["rescue", 4], ["legacy", 3], ["scale", 2], ["scaling", 2], ["audit", 3], ["postgres", 2], ["outage", 3], ["crash", 3], ["latency", 2], ["expensive", 2], ["existing codebase", 3], ["take over", 3], ["fix", 2], ["gunicorn", 3], ["nginx", 2]],
+    tools: [
+      {
+        name: "get_service",
+        args: `slug="${saasSvc.slug}"`,
+        result: `${must(saasSvc.deliverables.find((d) => d.title === "Rescue & scale"), "Rescue & scale").title}: ${must(saasSvc.deliverables.find((d) => d.title === "Rescue & scale"), "Rescue & scale").body.toLowerCase()}`,
+      },
+      {
+        name: "search_case_studies",
+        args: 'query="django scale"',
+        result: `1 match: options analytics SaaS, ${result(research.slug, "live analytics pages")} live pages over ${result(research.slug, "WebSocket routes")} WebSocket routes`,
+      },
+    ],
+    thinking: { label: "Profiling before prescribing", seconds: 0.9 },
+    intro:
+      "We start with a paid technical audit of architecture, security, performance and test coverage, then hand you a prioritized plan. Fixes typically span Nginx, Gunicorn, Postgres and Redis, shipped behind CI/CD and monitoring so they stay fixed.",
+    flowTitle: "Suggested approach",
+    flow: ["Technical audit", "Prioritized plan", "Fixes in weekly increments", "Monitoring & CI/CD"],
+    timeline: [
+      ["Discovery call", call],
+      ["Technical roadmap", `${roadmap} · audit scope and priorities`],
+      ["Build & ship", "Weekly increments you can click through"],
+    ],
+    proof: `Much of our work is hardening and scaling systems that are already live, including a Django platform with ${result(research.slug, "live analytics pages")} live pages over ${result(research.slug, "WebSocket routes")} WebSocket routes.`,
+    cta,
+  },
+  {
+    id: "voice",
+    prompt: "Build a voice AI assistant",
+    keywords: [["voice", 4], ["speech", 3], ["audio", 3], ["phone", 2], ["elevenlabs", 4], ["gemini live", 4], ["transcript", 2], ["talk", 1], ["spoken", 2]],
+    tools: [
+      { name: "search_case_studies", args: 'query="voice ai"', result: `1 match: ${voice.title}` },
+      { name: "get_service", args: `slug="${voiceSvc.slug}"`, result: stackPreview(voiceSvc.stack) },
+    ],
+    thinking: { label: "Keeping spoken replies fast while tools run", seconds: 1.2 },
+    intro:
+      "Put voice engines like Gemini Live and ElevenLabs behind one provider-independent interface, run a turn's tool calls concurrently so the assistant answers while it works, and meter every session with spend caps and prepaid credits enforced server-side.",
+    flow: voice.flow,
+    timeline: [
+      ["Technical roadmap", roadmap],
+      ["Pilot sprint", `${pilot} · a working voice slice on your data`],
+      ["Build & ship", "Weekly demos · automated tests from the first sprint"],
+    ],
+    proof: `Shipped before: a real-time voice assistant with ${result(voice.slug, "voice-callable tools")} tools and two voice engines behind one interface, covered by ${result(voice.slug, "automated tests")} automated tests.`,
+    cta,
+  },
+];
+
+const fallback: Scenario = {
+  id: "fallback",
+  prompt: "",
+  keywords: [],
+  tools: [
+    { name: "search_case_studies", args: 'query="…"', result: "no direct match" },
+    { name: "list_services", args: "", result: services.map((s) => s.title).join(" · ") },
+  ],
+  thinking: { label: "Not enough context to scope this responsibly", seconds: 0.6 },
+  intro: `That one deserves a real conversation rather than a scripted answer. In a ${call} discovery call we learn the goal and constraints, then send architecture, milestones, risks and a fixed-scope proposal within ${roadmap}.`,
+  timeline: [
+    ["Discovery call", call],
+    ["Technical roadmap", roadmap],
+    ["Pilot sprint", pilot],
+  ],
+  cta: { label: `→ Book a ${call} discovery call`, href: "/contact/" },
+};
+
+const data: AgentData = { scenarios, fallback };
+const json = JSON.stringify(data).replace(/</g, "\\u003c");
+const example = scenarios[0]!;
+const chips = scenarios.filter((s) => s.chip);
+---
+<section id="agent-demo" class="section agent" aria-label="Interactive agent demo">
+  <div class="container">
+    <SectionHeader
+      eyebrow="Interactive demo"
+      title={`Ask our agent how we&rsquo;d <span class="gradient-text">build it</span>`}
+      lead="Pick a prompt or type your own. The agent searches our shipped work, then answers with an architecture, a timeline and the proof behind it."
+      center
+    />
+
+    <div class="console" data-agent data-reveal>
+      <div class="console-bar">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="console-title">zerotwo-agent — scoping session</span>
+        <span class="console-status" data-agent-status data-state="done">done</span>
+      </div>
+
+      <div class="console-chips" role="group" aria-label="Example prompts">
+        {chips.map((s, i) => (
+          <button type="button" class="chip" data-scenario={s.id} aria-pressed={i === 0 ? "true" : "false"}>{s.chip}</button>
+        ))}
+      </div>
+
+      <div class="console-body" data-agent-scroll tabindex="0" aria-label="Agent transcript">
+        <div class="console-log" data-agent-log aria-live="polite" aria-busy="false">
+          <div class="a-user"><span class="a-caret">&gt;</span><span>{example.prompt}</span></div>
+          {example.tools.map((t) => (
+            <div class="a-tool">
+              <div class="a-call"><span class="a-bullet"></span><span class="a-fn">{t.name}</span><span class="a-args">({t.args})</span></div>
+              <div class="a-result"><span class="a-elbow"></span><span>{t.result}</span></div>
+            </div>
+          ))}
+          <div class="a-think"><span class="a-star">*</span><span>Thought for {example.thinking.seconds.toFixed(1)}s · {example.thinking.label}</span></div>
+          <div class="a-answer">
+            <p class="a-intro">{example.intro}</p>
+            {example.flow && (
+              <>
+                <p class="a-label">{example.flowTitle ?? "Suggested architecture"}</p>
+                <ol class="a-flow" role="list">{example.flow.map((f) => <li>{f}</li>)}</ol>
+              </>
+            )}
+            <p class="a-label">Timeline</p>
+            <dl class="a-timeline">
+              {example.timeline.map(([k, v]) => (
+                <div class="a-row"><dt>{k}</dt><dd>{v}</dd></div>
+              ))}
+            </dl>
+            {example.proof && <p class="a-proof">{example.proof}</p>}
+            <a class="a-cta" href={example.cta.href}>{example.cta.label}</a>
+          </div>
+        </div>
+      </div>
+
+      <form class="console-input" action="/contact/" method="get" data-agent-form>
+        <label for="agent-q" class="sr-only">Ask your own question</label>
+        <span class="a-caret" aria-hidden="true">&gt;</span>
+        <input
+          id="agent-q"
+          name="q"
+          type="text"
+          maxlength="200"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Ask your own, e.g. “Can you add voice to our app?”"
+          data-agent-input
+        />
+        <button type="submit" class="btn send">Ask <span aria-hidden="true">↵</span></button>
+      </form>
+    </div>
+
+    <p class="console-note">Scripted demo. Real agents run on your data.</p>
+  </div>
+  <script type="application/json" id="agent-data" is:inline set:html={json}></script>
+</section>
+
+<style>
+  .console {
+    max-width: 960px;
+    margin-inline: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-2);
+    background: linear-gradient(180deg, #111218, #0b0c0f);
+    box-shadow: 0 40px 120px -40px rgba(139, 124, 255, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: var(--fs-sm);
+  }
+
+  .console-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    height: 44px;
+    padding: 0 var(--space-4);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .dots i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #2a2c33;
+  }
+  .dots i:nth-child(1) { background: #ff5f57; opacity: 0.85; }
+  .dots i:nth-child(2) { background: #febc2e; opacity: 0.85; }
+  .dots i:nth-child(3) { background: #28c840; opacity: 0.85; }
+  .console-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+    text-align: center;
+  }
+  .console-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+  .console-status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--up);
+  }
+  .console-status[data-state="streaming"]::before {
+    background: var(--accent);
+    animation: ag-pulse 1s var(--ease) infinite;
+  }
+
+  .console-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .chip {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
+    font-family: var(--font);
+    font-size: var(--fs-xs);
+    line-height: 1.3;
+    text-align: left;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+  .chip:hover {
+    color: var(--text);
+    border-color: var(--border-2);
+  }
+  .chip[aria-pressed="true"] {
+    color: var(--text);
+    border-color: rgba(139, 124, 255, 0.55);
+    background: rgba(139, 124, 255, 0.12);
+  }
+
+  .console-body {
+    height: clamp(400px, 56vh, 520px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-5) var(--space-5) var(--space-6);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-2) transparent;
+  }
+  .console-body:focus-visible {
+    outline-offset: -2px;
+  }
+  .console-log {
+    display: grid;
+    gap: var(--space-3);
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+
+  /* Transcript nodes are also created by JS, so they are styled with :global inside the log */
+  .console-log :global(.a-user) {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .console :global(.a-caret) {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .console-log :global(.a-tool) {
+    display: grid;
+    gap: 2px;
+  }
+  .console-log :global(.a-call) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    color: var(--text);
+  }
+  .console-log :global(.a-bullet) {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: var(--up);
+    align-self: center;
+  }
+  .console-log :global(.a-tool.is-running .a-bullet) {
+    background: var(--accent-3);
+    animation: ag-pulse 0.9s var(--ease) infinite;
+  }
+  .console-log :global(.a-fn) {
+    font-weight: 600;
+  }
+  .console-log :global(.a-args) {
+    color: var(--text-3);
+    overflow-wrap: anywhere;
+  }
+  .console-log :global(.a-result) {
+    display: flex;
+    gap: 10px;
+    padding-left: 3px;
+    color: var(--text-3);
+  }
+  .console-log :global(.a-elbow) {
+    flex: none;
+    width: 10px;
+    height: 0.8em;
+    margin-top: 0.1em;
+    border-left: 1px solid var(--border-2);
+    border-bottom: 1px solid var(--border-2);
+    border-bottom-left-radius: 3px;
+  }
+  .console-log :global(.a-think) {
+    display: flex;
+    gap: var(--space-2);
+    color: var(--text-3);
+    font-style: italic;
+  }
+  .console-log :global(.a-star) {
+    flex: none;
+    color: var(--accent-3);
+    font-style: normal;
+    font-weight: 700;
+  }
+  .console-log :global(.a-think.is-running .a-star) {
+    animation: ag-spin 1.2s linear infinite;
+  }
+  .console-log :global(.a-think.is-running) {
+    background: linear-gradient(90deg, var(--text-3) 0%, var(--text) 50%, var(--text-3) 100%) 0 0 / 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ag-shimmer 1.6s linear infinite;
+  }
+  .console-log :global(.a-answer) {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4) 0 0 var(--space-4);
+    border-left: 2px solid rgba(139, 124, 255, 0.4);
+    font-family: var(--font);
+    font-size: var(--fs-sm);
+  }
+  .console-log :global(.a-intro) {
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .console-log :global(.a-label) {
+    margin-top: var(--space-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .console-log :global(.a-flow) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .console-log :global(.a-flow li) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-2);
+    animation: ag-pop 0.35s var(--ease) both;
+  }
+  .console-log :global(.a-flow li + li::before) {
+    content: "→";
+    margin-left: -2px;
+    color: var(--accent);
+  }
+  .console-log :global(.a-timeline) {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+  }
+  .console-log :global(.a-row) {
+    display: grid;
+    grid-template-columns: minmax(130px, 180px) 1fr;
+    gap: var(--space-3);
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border);
+    animation: ag-pop 0.35s var(--ease) both;
+  }
+  .console-log :global(.a-row dt) {
+    color: var(--text);
+    font-weight: 560;
+  }
+  .console-log :global(.a-row dd) {
+    margin: 0;
+    color: var(--text-2);
+  }
+  .console-log :global(.a-proof) {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(61, 220, 151, 0.22);
+    background: rgba(61, 220, 151, 0.06);
+    color: var(--text-2);
+  }
+  .console-log :global(.a-cta) {
+    justify-self: start;
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 1px;
+    animation: ag-pop 0.35s var(--ease) both;
+  }
+  .console-log :global(.a-cta:hover) {
+    color: var(--accent);
+  }
+
+  .console-input {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .console-input input {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    border: 0;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+  .console-input input::placeholder {
+    color: var(--text-3);
+  }
+  .console-input input:focus {
+    outline: none;
+  }
+  .console-input:focus-within {
+    box-shadow: inset 0 0 0 1px rgba(139, 124, 255, 0.45);
+  }
+  .send {
+    height: 36px;
+    padding: 0 14px;
+    font-family: var(--font);
+    font-size: var(--fs-xs);
+  }
+
+  .console-note {
+    margin-top: var(--space-4);
+    text-align: center;
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  @keyframes ag-pulse {
+    50% { opacity: 0.35; }
+  }
+  @keyframes ag-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes ag-shimmer {
+    to { background-position: -200% 0; }
+  }
+  @keyframes ag-pop {
+    from { opacity: 0; transform: translateY(4px); }
+  }
+
+  @media (max-width: 640px) {
+    .console {
+      font-size: var(--fs-xs);
+    }
+    .console-bar {
+      gap: var(--space-3);
+    }
+    .console-title {
+      text-align: left;
+    }
+    .console-body {
+      height: clamp(380px, 62vh, 480px);
+      padding: var(--space-4);
+    }
+    .console-log :global(.a-row) {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    .console-log :global(.a-answer) {
+      padding-left: var(--space-3);
+    }
+    .console-input {
+      padding-left: var(--space-4);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .console-log :global(.a-think.is-running) {
+      background: none;
+      color: var(--text-3);
+    }
+  }
+</style>
+
+<script>
+  import { initAgentConsole } from "../../scripts/agent-console";
+  initAgentConsole();
+</script>

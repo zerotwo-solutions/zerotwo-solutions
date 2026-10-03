@@ -606,6 +606,10 @@ const schema = [
         field("name")?.focus();
       });
     }
+    // ?q=... comes from the home page agent console's free-text question.
+    const question = (params.get("q") ?? "").trim().slice(0, 1000);
+    const message = field("message");
+    if (question && message && !message.value) message.value = question;
     const service = params.get("service");
     const typeSelect = field("projectType");
     if (service && typeSelect instanceof HTMLSelectElement) {

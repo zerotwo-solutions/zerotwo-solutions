@@ -1,0 +1,255 @@
+---
+// Home hero. All copy is server-rendered; the WebGL "signal field" is a lazy enhancement
+// layered over a pure-CSS fallback, so there is no layout shift and nothing to wait for.
+import { company, stats } from "../../data/site";
+import Icon from "../Icon.astro";
+
+const fmt = new Intl.NumberFormat("en-US");
+const trust = [
+  `Roadmap in ${company.roadmapTime}`,
+  "NDA on request",
+  "You own 100% of IP",
+  "US hours overlap",
+];
+---
+<section id="hero" class="section hero" aria-labelledby="hero-title" data-hero>
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-glow"></div>
+    <div class="hero-plane"></div>
+    <canvas class="hero-canvas" data-hero-canvas></canvas>
+    <div class="hero-scrim"></div>
+  </div>
+
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <a class="pill hero-pill" href="/services/mcp-server-development/">
+        <b>New</b> MCP server development for Claude <Icon name="arrow" size={14} class="arrow" />
+      </a>
+
+      <h1 id="hero-title" class="display hero-title">
+        We build AI agents and real-time FinTech products <span class="gradient-text">that ship.</span>
+      </h1>
+
+      <p class="lead hero-lead">
+        Senior engineers who design, build and run production AI agents on Claude and AWS Bedrock,
+        MCP servers that let AI operate your product, real-time market data pipelines and SaaS on AWS.
+      </p>
+
+      <div class="hero-ctas">
+        <a class="btn btn--primary btn--lg" href="/contact/">
+          Get your free roadmap <Icon name="arrow" size={16} class="arrow" />
+        </a>
+        <a class="btn btn--lg" href="/work/">See our work</a>
+      </div>
+
+      <ul class="hero-trust" role="list" aria-label="How we work">
+        {trust.map((t) => (
+          <li><Icon name="check" size={15} />{t}</li>
+        ))}
+      </ul>
+    </div>
+
+    <dl class="hero-stats">
+      {stats.map((s) => (
+        <div class="hero-stat">
+          <dt>{s.label}</dt>
+          <dd><span data-count={s.value} data-suffix={s.suffix}>{fmt.format(s.value)}{s.suffix}</span></dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .hero {
+    --hero-min: min(900px, calc(100svh - var(--nav-h)));
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    min-height: max(640px, var(--hero-min));
+    padding-block: clamp(48px, 8vh, 112px) clamp(32px, 5vh, 56px);
+  }
+
+  /* ---------- background layers ---------- */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(60% 55% at 72% 78%, rgba(139, 124, 255, 0.22), transparent 70%),
+      radial-gradient(40% 40% at 92% 58%, rgba(79, 209, 197, 0.14), transparent 70%),
+      radial-gradient(35% 30% at 18% 100%, rgba(79, 209, 197, 0.08), transparent 70%);
+  }
+  /* CSS-only fallback "field": a dotted plane in perspective. Visible before/without WebGL. */
+  .hero-plane {
+    position: absolute;
+    left: -30%;
+    right: -30%;
+    bottom: -8%;
+    height: 72%;
+    background-image: radial-gradient(circle at center, rgba(169, 155, 255, 0.55) 0 1px, transparent 1.6px);
+    background-size: 22px 22px;
+    transform: perspective(520px) rotateX(64deg);
+    transform-origin: 50% 100%;
+    -webkit-mask-image: radial-gradient(ellipse 55% 95% at 55% 100%, #000 15%, transparent 72%);
+    mask-image: radial-gradient(ellipse 55% 95% at 55% 100%, #000 15%, transparent 72%);
+    opacity: 0.7;
+    transition: opacity 1.2s var(--ease);
+  }
+  .hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    opacity: 0;
+    transition: opacity 1.4s var(--ease);
+  }
+  .hero.is-webgl .hero-canvas {
+    opacity: 1;
+  }
+  .hero.is-webgl .hero-plane {
+    opacity: 0;
+  }
+  /* Keeps copy legible over the field and blends the hero into the page */
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(8, 9, 10, 0.82) 0%, rgba(8, 9, 10, 0.5) 38%, rgba(8, 9, 10, 0) 70%),
+      linear-gradient(180deg, rgba(8, 9, 10, 0.55) 0%, rgba(8, 9, 10, 0) 22%, rgba(8, 9, 10, 0) 78%, var(--bg) 100%);
+  }
+
+  /* ---------- content ---------- */
+  .hero-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-8);
+  }
+  .hero-copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+    margin-block: auto;
+  }
+  .hero-pill {
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .hero-pill:hover {
+    border-color: var(--border-2);
+    background: var(--surface-2);
+  }
+  .hero-pill :global(.arrow) {
+    transition: transform 0.2s var(--ease);
+  }
+  .hero-pill:hover :global(.arrow) {
+    transform: translateX(3px);
+  }
+  .hero-title {
+    max-width: 15.5em;
+  }
+  .hero-lead {
+    max-width: 58ch;
+  }
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .hero-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .hero-trust li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-trust :global(svg) {
+    color: var(--up);
+    flex: none;
+  }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--border);
+  }
+  .hero-stat {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: var(--space-1);
+    padding: var(--space-5) var(--space-5) 0 0;
+  }
+  .hero-stat + .hero-stat {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--border);
+  }
+  .hero-stat dt {
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--text-3);
+  }
+  .hero-stat dd {
+    margin: 0;
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    letter-spacing: var(--tracking-snug);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 900px) {
+    .hero-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .hero-stat,
+    .hero-stat + .hero-stat {
+      padding: var(--space-4) var(--space-4) var(--space-4) 0;
+      border-left: 0;
+    }
+    .hero-stat:nth-child(even) {
+      padding-left: var(--space-4);
+      border-left: 1px solid var(--border);
+    }
+    .hero-stat:nth-child(n + 3) {
+      border-top: 1px solid var(--border);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      min-height: auto;
+    }
+    .hero-scrim {
+      background:
+        linear-gradient(180deg, rgba(8, 9, 10, 0.75) 0%, rgba(8, 9, 10, 0.45) 55%, rgba(8, 9, 10, 0.2) 75%, var(--bg) 100%);
+    }
+    .hero-ctas .btn {
+      flex: 1 1 100%;
+    }
+    .hero-trust {
+      font-size: var(--fs-xs);
+      gap: var(--space-2) var(--space-4);
+    }
+  }
+</style>
+
+<script>
+  import { initHeroScene } from "../../scripts/hero-scene";
+  initHeroScene();
+</script>

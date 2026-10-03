@@ -1,0 +1,496 @@
+---
+// "Plan your build": lead-gen estimator. The default plan is computed at build time with the
+// same pure function the client uses, so the section is complete without JavaScript.
+import { engagementModels } from "../../data/site";
+import {
+  DEFAULT_INPUT,
+  FEATURE_LABELS,
+  STAGE_LABELS,
+  TYPE_LABELS,
+  computePlan,
+  formatWeeks,
+  type Feature,
+  type ProjectType,
+  type Stage,
+} from "../../scripts/estimator";
+import Icon from "../Icon.astro";
+import SectionHeader from "../SectionHeader.astro";
+
+const plan = computePlan(DEFAULT_INPUT, engagementModels);
+const types = Object.entries(TYPE_LABELS) as [ProjectType, string][];
+const features = Object.entries(FEATURE_LABELS) as [Feature, string][];
+const stages = Object.entries(STAGE_LABELS) as [Stage, string][];
+const every = plan.scale > 16 ? 4 : 2;
+const ticks = Array.from({ length: Math.floor(plan.scale / every) + 1 }, (_, i) => i * every);
+const json = JSON.stringify(engagementModels).replace(/</g, "\\u003c");
+const range = (a: number, b: number) => (a === b ? `${a}` : `${a}–${b}`);
+---
+<section id="estimator" class="section est" aria-label="Plan your build" data-est>
+  <div class="container">
+    <SectionHeader
+      eyebrow="Plan your build"
+      title={`Sketch your project. <span class="gradient-text">Get a realistic plan.</span>`}
+      lead="Pick what you are building and where you are today. You get a phase timeline, a team shape and the stack we would start from. No prices here: we quote a fixed scope after a short call."
+    />
+
+    <div class="est-grid" data-reveal>
+      <form class="card est-form" data-est-form action="/contact/" method="get">
+        <fieldset class="fs">
+          <legend class="fs-legend"><span class="fs-step" aria-hidden="true">1</span>What are you building?</legend>
+          <div class="opts">
+            {types.map(([value, label]) => (
+              <label class="opt">
+                <input type="radio" name="type" value={value} checked={value === DEFAULT_INPUT.type} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="fs">
+          <legend class="fs-legend"><span class="fs-step" aria-hidden="true">2</span>What does it need?</legend>
+          <p class="fs-hint">Select all that apply.</p>
+          <div class="opts opts--grid">
+            {features.map(([value, label]) => (
+              <label class="opt opt--check">
+                <input type="checkbox" name="features" value={value} checked={DEFAULT_INPUT.features.includes(value)} />
+                <span><i class="box" aria-hidden="true"><Icon name="check" size={12} /></i>{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="fs">
+          <legend class="fs-legend"><span class="fs-step" aria-hidden="true">3</span>Where are you today?</legend>
+          <div class="seg">
+            {stages.map(([value, label]) => (
+              <label class="opt opt--seg">
+                <input type="radio" name="stage" value={value} checked={value === DEFAULT_INPUT.stage} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="card est-out">
+        <div class="out-head">
+          <span class="eyebrow">Your plan</span>
+          <span class="out-total"><span data-o="total">{range(plan.total[0], plan.total[1])} weeks</span> to launch</span>
+        </div>
+
+        <div class="out-block">
+          <p class="out-k">Recommended engagement</p>
+          <p class="h3 eng-title" data-o="eng-title">{plan.engagement.title}</p>
+          <p class="eng-best" data-o="eng-best">Best for: {plan.engagement.best}</p>
+          <p class="eng-body" data-o="eng-body">{plan.engagement.body}</p>
+        </div>
+
+        <div class="out-block">
+          <p class="out-k">Phase timeline</p>
+          <ol class="phases" role="list">
+            {plan.phases.map((p, i) => (
+              <li
+                class="ph"
+                data-phase={p.key}
+                style={`--start:${p.start / plan.scale};--min:${p.min / plan.scale};--max:${p.max / plan.scale};--i:${i}`}
+              >
+                <div class="ph-head">
+                  <span class="ph-label">{p.label}</span>
+                  <span class="ph-weeks" data-weeks>{formatWeeks(p.min, p.max)}</span>
+                </div>
+                <div class="ph-track" aria-hidden="true">
+                  <span class="ph-range"></span>
+                  <span class="ph-bar"></span>
+                </div>
+                <p class="ph-note" data-note>{p.note}</p>
+              </li>
+            ))}
+          </ol>
+          <div class="axis" data-o="axis" aria-hidden="true">
+            {ticks.map((w) => <span style={`--at:${w / plan.scale}`}>{w === 0 ? "Week 0" : w}</span>)}
+          </div>
+        </div>
+
+        <div class="out-cols">
+          <div class="out-block">
+            <p class="out-k">Team shape</p>
+            <p class="team"><Icon name="users" size={16} /><span data-o="team">{plan.team}</span></p>
+          </div>
+          <div class="out-block">
+            <p class="out-k">Suggested stack</p>
+            <ul class="tag-list" data-o="stack">
+              {plan.stack.map((s) => <li class="tag">{s}</li>)}
+            </ul>
+          </div>
+        </div>
+
+        <details class="rules">
+          <summary>How we estimated this</summary>
+          <ul data-o="rules">
+            {plan.rules.map((r) => <li>{r}</li>)}
+          </ul>
+        </details>
+
+        <div class="out-cta">
+          <a class="btn btn--primary btn--lg" href={plan.href} data-o="cta">
+            Send this plan to our team <Icon name="arrow" size={16} class="arrow" />
+          </a>
+          <p class="out-note">Indicative ranges. We confirm a fixed scope and price after a call.</p>
+        </div>
+        <p class="sr-only" aria-live="polite" data-o="live"></p>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="estimator-data" is:inline set:html={json}></script>
+</section>
+
+<style>
+  .est-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  /* ---------- form ---------- */
+  .est-form {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .fs {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  .fs-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0;
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-body);
+    font-weight: 600;
+    letter-spacing: var(--tracking-snug);
+    color: var(--text);
+  }
+  .fs-step {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    border: 1px solid var(--border-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-2);
+  }
+  .fs-hint {
+    margin: calc(var(--space-2) * -1) 0 var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+  .opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .opts--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  }
+  .opt {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .opt input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .opt span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: var(--fs-sm);
+    line-height: 1.3;
+    color: var(--text-2);
+    transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .opt:hover span {
+    color: var(--text);
+    border-color: var(--border-2);
+  }
+  .opt input:checked + span {
+    color: var(--text);
+    border-color: rgba(139, 124, 255, 0.6);
+    background: rgba(139, 124, 255, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(139, 124, 255, 0.25);
+  }
+  .opt input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .opt--check span {
+    border-radius: var(--radius-sm);
+  }
+  .box {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1px solid var(--border-2);
+    color: transparent;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .opt input:checked + span .box {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .seg {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .opt--seg span {
+    justify-content: center;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    border-color: transparent;
+    background: transparent;
+  }
+
+  /* ---------- output ---------- */
+  .est-out {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--space-4));
+    display: grid;
+    gap: var(--space-5);
+    border-color: var(--border-2);
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgba(139, 124, 255, 0.1), transparent 60%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012));
+  }
+  .out-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+  .out-total {
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+  }
+  .out-total span {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .out-block {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .out-k {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .eng-best {
+    font-size: var(--fs-xs);
+    color: var(--accent-2);
+  }
+  .eng-body {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+
+  .phases {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-1);
+  }
+  .ph {
+    display: grid;
+    gap: 6px;
+  }
+  .ph-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+  }
+  .ph-label {
+    font-weight: 560;
+    color: var(--text);
+  }
+  .ph-weeks {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .ph-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .ph-range,
+  .ph-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--start) * 100%);
+    border-radius: 999px;
+    transform-origin: left center;
+    transition:
+      left 0.6s var(--ease),
+      width 0.6s var(--ease),
+      transform 0.9s var(--ease) calc(var(--i) * 90ms),
+      opacity 0.9s var(--ease) calc(var(--i) * 90ms);
+  }
+  .ph-range {
+    width: calc(var(--max) * 100%);
+    background: repeating-linear-gradient(-45deg, rgba(139, 124, 255, 0.28) 0 4px, rgba(139, 124, 255, 0.1) 4px 8px);
+  }
+  .ph-bar {
+    width: calc(var(--min) * 100%);
+    background: var(--gradient);
+    box-shadow: 0 0 16px -2px rgba(139, 124, 255, 0.55);
+  }
+  .ph-note {
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+  /* Bars grow in when the panel scrolls into view (site.ts adds .is-visible) */
+  :global(.js) .est-grid:not(.is-visible) .ph-range,
+  :global(.js) .est-grid:not(.is-visible) .ph-bar {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  .axis {
+    position: relative;
+    height: 18px;
+    margin-top: var(--space-1);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+  .axis :global(span) {
+    position: absolute;
+    left: calc(var(--at) * 100%);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .axis :global(span:first-child) {
+    transform: none;
+  }
+  .axis :global(span:last-child:not(:first-child)) {
+    transform: translateX(-100%);
+  }
+
+  .out-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--space-5);
+  }
+  .team {
+    display: flex;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+  .team :global(svg) {
+    flex: none;
+    margin-top: 3px;
+    color: var(--accent);
+  }
+  .out-cols :global(.tag) {
+    font-family: var(--mono);
+  }
+
+  .rules {
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-4);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .rules summary {
+    cursor: pointer;
+    width: fit-content;
+    color: var(--text-2);
+  }
+  .rules summary:hover {
+    color: var(--text);
+  }
+  .rules ul {
+    display: grid;
+    gap: 4px;
+    margin: var(--space-3) 0 0;
+    padding-left: 1.1em;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  .out-cta {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+  }
+  .out-note {
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  @media (max-width: 960px) {
+    .est-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .est-out {
+      position: static;
+    }
+  }
+  @media (max-width: 560px) {
+    .out-cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .out-cta .btn {
+      width: 100%;
+      white-space: normal;
+      text-align: center;
+    }
+    .est-form,
+    .est-out {
+      padding: var(--space-5);
+    }
+  }
+</style>
+
+<script>
+  import { initEstimator } from "../../scripts/estimator";
+  initEstimator();
+</script>

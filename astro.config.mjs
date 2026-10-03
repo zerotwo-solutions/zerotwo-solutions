@@ -9,6 +9,8 @@ export default defineConfig({
   trailingSlash: "always",
   build: { format: "directory", inlineStylesheets: "auto" },
   prefetch: { prefetchAll: false, defaultStrategy: "hover" },
+  // three.js (~740 kB raw) is only reached via a dynamic import in the hero, off the critical path.
+  vite: { build: { chunkSizeWarningLimit: 800 } },
   integrations: [
     sitemap({
       filter: (page) => !page.includes("/404"),

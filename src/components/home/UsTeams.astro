@@ -1,0 +1,63 @@
+---
+// "Built for US teams": live US clocks + the commitments US buyers ask about first.
+import { company, guarantees } from "../../data/site";
+import Icon from "../Icon.astro";
+import SectionHeader from "../SectionHeader.astro";
+const icons = ["lock", "shield", "clock", "play", "users", "shield"];
+const zones = [
+  { city: "New York", tz: "America/New_York", abbr: "ET" },
+  { city: "Chicago", tz: "America/Chicago", abbr: "CT" },
+  { city: "Denver", tz: "America/Denver", abbr: "MT" },
+  { city: "San Francisco", tz: "America/Los_Angeles", abbr: "PT" },
+];
+---
+<section class="section section--border" id="us-teams" aria-labelledby="us-title">
+  <div class="container">
+    <SectionHeader eyebrow="Built for US teams" title={`<span id="us-title">Your time zone. Your repos.<br/><span class="dim-text">Your IP from day one.</span></span>`} lead={`We work the way US product teams already work: ${company.overlap}, weekly demos, written updates and contracts that assign every line of code to you.`} />
+    <div class="clocks" data-reveal aria-label="Current time in US time zones">
+      {zones.map((z) => (
+        <div class="clock">
+          <span class="clock-city">{z.city}</span>
+          <time class="clock-time mono" data-tz={z.tz}>--:--</time>
+          <span class="clock-tz">{z.abbr}</span>
+        </div>
+      ))}
+    </div>
+    <ul class="grid grid-3 promises" role="list">
+      {guarantees.map((g, i) => (
+        <li class="card spotlight" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+          <span class="promise-icon"><Icon name={icons[i] ?? "check"} size={18} /></span>
+          <h3 class="h3">{g.title}</h3>
+          <p class="muted">{g.body}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+<style>
+  .clocks { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: var(--space-6); background: var(--surface); }
+  .clock { display: grid; gap: 4px; padding: 20px 24px; }
+  .clock + .clock { border-left: 1px solid var(--border); }
+  .clock-city { font-size: var(--fs-xs); color: var(--text-3); font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+  .clock-time { font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .clock-tz { font-size: var(--fs-xs); color: var(--text-3); }
+  .promises { list-style: none; padding: 0; margin: 0; }
+  .promises .card { display: grid; gap: 10px; align-content: start; }
+  .promise-icon { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border-2); background: rgba(139,124,255,.1); color: #c9c1ff; }
+  @media (max-width: 720px) { .clocks { grid-template-columns: repeat(2, 1fr); } .clock:nth-child(3) { border-left: 0; } .clock:nth-child(n+3) { border-top: 1px solid var(--border); } }
+</style>
+<script>
+  const els = document.querySelectorAll<HTMLTimeElement>("[data-tz]");
+  const fmts = new Map<string, Intl.DateTimeFormat>();
+  const render = () => {
+    const now = new Date();
+    els.forEach((el) => {
+      const tz = el.dataset.tz!;
+      if (!fmts.has(tz)) fmts.set(tz, new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz }));
+      el.textContent = fmts.get(tz)!.format(now);
+      el.dateTime = now.toISOString();
+    });
+  };
+  render();
+  setInterval(render, 15_000);
+</script>

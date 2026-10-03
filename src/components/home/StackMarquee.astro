@@ -1,0 +1,27 @@
+---
+// Infinite, CSS-only marquee of the stack we ship with (pauses on hover, static for reduced motion).
+import { stack, proofStrip } from "../../data/site";
+const items = [...proofStrip, ...stack.flatMap((g) => g.items).slice(0, 18)];
+---
+<section class="marquee-wrap" aria-label="Technologies and capabilities">
+  <p class="marquee-label">Production experience with</p>
+  <div class="marquee">
+    <ul class="marquee-track" role="list">
+      {items.map((t) => <li>{t}</li>)}
+    </ul>
+    <ul class="marquee-track" aria-hidden="true">
+      {items.map((t) => <li>{t}</li>)}
+    </ul>
+  </div>
+</section>
+<style>
+  .marquee-wrap { padding-block: var(--space-7); border-block: 1px solid var(--border); background: rgba(255,255,255,.012); }
+  .marquee-label { text-align: center; font-family: var(--mono); font-size: var(--fs-xs); color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--space-5); }
+  .marquee { display: flex; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+  .marquee-track { flex: none; display: flex; gap: 40px; padding-right: 40px; list-style: none; margin: 0; animation: scroll 60s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-track li { font-size: 1.0625rem; font-weight: 560; letter-spacing: -0.01em; color: var(--text-2); white-space: nowrap; }
+  .marquee-track li::before { content: "◆"; margin-right: 40px; font-size: 8px; vertical-align: middle; color: var(--accent); opacity: .7; }
+  @keyframes scroll { to { transform: translateX(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } .marquee { flex-wrap: wrap; justify-content: center; } .marquee-track[aria-hidden] { display: none; } }
+</style>

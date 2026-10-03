@@ -82,3 +82,23 @@ We open-source tools in **AI Engineering, FinTech, Django & DevOps** and publish
 📧 **info@zerotwosolutions.com** · 🌐 **[zerotwosolutions.com](https://www.zerotwosolutions.com)**
 
 </div>
+
+---
+
+## 🧑‍💻 Website development
+
+This repository contains the source of [zerotwosolutions.com](https://www.zerotwosolutions.com): a static [Astro](https://astro.build) site with lazily loaded three.js scenes, zero UI-framework runtime, and build-time SEO checks.
+
+```bash
+npm install
+npm run dev       # http://localhost:4321
+npm run build     # astro check + static build to dist/ + SEO/link/privacy verification
+npm run preview   # serve dist/
+npm run og        # regenerate og.png, icons and favicons from SVG
+```
+
+- **Content** lives in `src/data/site.ts` (services, case studies, process, FAQ) and `src/content/blogs/*.md` (blog).
+- **Design tokens** (type scale, colors, spacing) live in `src/styles/global.css`; every page uses them.
+- **Contact form**: set `PUBLIC_FORM_ENDPOINT` (Formspree, Web3Forms, etc.) at build time; without it the form falls back to `mailto:`.
+- **SEO**: per-page canonical/OG/Twitter tags, JSON-LD (Organization, Service, BreadcrumbList, BlogPosting, FAQPage), `sitemap-index.xml`, `robots.txt`, `llms.txt` and `rss.xml` are generated at build. `scripts/verify-build.mjs` fails the build on missing metadata, duplicate titles, broken internal links, more than one H1, or JS-budget regressions.
+- **Deploy**: any static host (Cloudflare Pages, Netlify, Vercel, S3 + CloudFront). Output directory: `dist/`.

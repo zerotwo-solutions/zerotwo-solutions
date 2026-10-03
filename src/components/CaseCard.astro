@@ -1,0 +1,362 @@
+---
+// Case study card with a decorative, CSS-only animated mini-visual keyed by study.visual.
+import type { CaseStudy } from "../data/site";
+import Icon from "./Icon.astro";
+
+interface Props {
+  study: CaseStudy;
+  /** Large horizontal layout with all metrics. */
+  featured?: boolean;
+  /** Heading level for the card title (h3 under a section h2 by default). */
+  as?: "h2" | "h3";
+}
+
+const { study, featured = false, as: Tag = "h3" } = Astro.props;
+const metrics = study.results.slice(0, featured ? 4 : 2);
+const tags = study.stack.slice(0, 6);
+
+// ---- Visual geometry (viewBox 0 0 320 160), computed once at build time ----
+const W = 320;
+const H = 160;
+
+// agent: hub and ring of tool nodes
+const hub = { x: W / 2, y: H / 2 };
+const ring = Array.from({ length: 6 }, (_, k) => {
+  const a = ((k * 60 + 30) * Math.PI) / 180;
+  return { x: +(hub.x + 112 * Math.cos(a)).toFixed(1), y: +(hub.y + 56 * Math.sin(a)).toFixed(1) };
+});
+const outer = Array.from({ length: 6 }, (_, k) => {
+  const a = ((k * 60) * Math.PI) / 180;
+  return { x: +(hub.x + 150 * Math.cos(a)).toFixed(1), y: +(hub.y + 70 * Math.sin(a)).toFixed(1) };
+});
+
+// flow: horizontal lanes with packets
+const lanes = [40, 66, 94, 120];
+const packets = lanes.flatMap((y, li) => [0, 1, 2].map((p) => ({ y, delay: -Number((p * 1.2 + li * 0.45).toFixed(2)) })));
+
+// mcp: tool grid
+const cols = 12;
+const rows = 5;
+const cell = 18;
+const gap = 4;
+const gx = (W - (cols * (cell + gap) - gap)) / 2;
+const gy = (H - (rows * (cell + gap) - gap)) / 2;
+const cells = Array.from({ length: cols * rows }, (_, i) => ({
+  x: gx + (i % cols) * (cell + gap),
+  y: gy + Math.floor(i / cols) * (cell + gap),
+  delay: (((i * 37) % 60) / 10).toFixed(1),
+}));
+
+// voice: waveform bars
+const bars = Array.from({ length: 40 }, (_, i) => {
+  const h = 18 + Math.abs(Math.sin(i * 0.55) * 52 + Math.sin(i * 1.7) * 18);
+  return { x: 22 + i * 7, h: +h.toFixed(1), delay: -Number((i * 0.07).toFixed(2)) };
+});
+---
+<article class:list={["card card--hover spotlight case-card", { "case-card--featured": featured }]} style={`--c: ${study.accent}`}>
+  <div class={`case-viz case-viz--${study.visual}`} aria-hidden="true">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" focusable="false">
+      {study.visual === "agent" && (
+        <g>
+          {outer.map((o, k) => <line class="v-faint" x1={ring[k].x} y1={ring[k].y} x2={o.x} y2={o.y} />)}
+          {ring.map((r) => <line class="v-edge" x1={hub.x} y1={hub.y} x2={r.x} y2={r.y} />)}
+          {outer.map((o) => <circle class="v-dot" cx={o.x} cy={o.y} r="2.5" />)}
+          {ring.map((r, k) => <circle class="v-node" cx={r.x} cy={r.y} r="6" style={`animation-delay:${k * 0.4}s`} />)}
+          <circle class="v-hub-ring" cx={hub.x} cy={hub.y} r="22" />
+          <circle class="v-hub" cx={hub.x} cy={hub.y} r="13" />
+        </g>
+      )}
+      {study.visual === "flow" && (
+        <g>
+          {lanes.map((y) => <line class="v-lane" x1="16" y1={y} x2={W - 16} y2={y} />)}
+          {packets.map((p) => <circle class="v-packet" cx="16" cy={p.y} r="3" style={`animation-delay:${p.delay}s`} />)}
+          <rect class="v-box" x={W / 2 - 34} y="26" width="68" height="108" rx="10" />
+          {[0, 1, 2, 3, 4].map((i) => <rect class="v-q" x={W / 2 - 22} y={40 + i * 17} width="44" height="9" rx="3" style={`animation-delay:${i * 0.25}s`} />)}
+        </g>
+      )}
+      {study.visual === "mcp" && (
+        <g>
+          {cells.map((c) => <rect class="v-cell" x={c.x} y={c.y} width={cell} height={cell} rx="4" style={`animation-delay:${c.delay}s`} />)}
+        </g>
+      )}
+      {study.visual === "voice" && (
+        <g>
+          <line class="v-lane" x1="16" y1={H / 2} x2={W - 16} y2={H / 2} />
+          {bars.map((b) => <rect class="v-bar" x={b.x} y={H / 2 - b.h / 2} width="4" height={b.h} rx="2" style={`animation-delay:${b.delay}s`} />)}
+        </g>
+      )}
+    </svg>
+  </div>
+
+  <div class="case-body">
+    <span class="eyebrow case-eyebrow">{study.industry}</span>
+    <Tag class="h3 case-title">{study.title}</Tag>
+    <p class="case-summary">{study.summary}</p>
+
+    <dl class="case-metrics">
+      {metrics.map((m) => (
+        <div class="case-metric">
+          <dt>{m.label}</dt>
+          <dd>{m.value}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <ul class="tag-list case-tags" role="list" aria-label="Technology stack">
+      {tags.map((t) => <li class="tag">{t}</li>)}
+    </ul>
+
+    <a class="link-arrow case-link" href={`/work/${study.slug}/`}>
+      Read the case study<span class="sr-only">: {study.title}</span>
+      <Icon name="arrow" size={16} class="case-arrow" />
+    </a>
+  </div>
+</article>
+
+<style>
+  .case-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    height: 100%;
+    padding: var(--space-4);
+  }
+  .case-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    flex: 1;
+    padding: var(--space-2) var(--space-3) var(--space-3);
+  }
+  .case-eyebrow::before {
+    background: var(--c);
+    box-shadow: 0 0 12px var(--c);
+  }
+  .case-summary {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  /* Metrics: dt is the label, dd the value; visually value first. */
+  .case-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+  }
+  .case-metric {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2px;
+  }
+  .case-metric dt {
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+    line-height: 1.4;
+  }
+  .case-metric dd {
+    margin: 0;
+    font-size: var(--fs-h3);
+    font-weight: 590;
+    letter-spacing: var(--tracking-snug);
+    line-height: 1.2;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .case-tags {
+    margin-top: auto;
+  }
+
+  .case-link {
+    color: var(--text-2);
+    transition: color 0.2s;
+  }
+  .case-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .case-link:focus-visible {
+    outline: none;
+  }
+  .case-card:has(.case-link:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .case-card:hover .case-link {
+    color: var(--text);
+  }
+  .case-card :global(.case-arrow) {
+    transition: transform 0.2s var(--ease);
+  }
+  .case-card:hover :global(.case-arrow) {
+    transform: translateX(3px);
+  }
+
+  /* ---------- Visual panel ---------- */
+  .case-viz {
+    position: relative;
+    aspect-ratio: 2 / 1;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background:
+      radial-gradient(60% 80% at 50% 50%, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%),
+      linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 24px 24px,
+      var(--bg-2);
+  }
+  .case-viz svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  /* agent */
+  .v-faint {
+    stroke: var(--border-2);
+    stroke-width: 1;
+  }
+  .v-edge {
+    stroke: var(--c);
+    stroke-opacity: 0.55;
+    stroke-width: 1.2;
+    stroke-dasharray: 3 6;
+    animation: v-dash 1.6s linear infinite;
+  }
+  .v-dot {
+    fill: var(--text-3);
+  }
+  .v-node {
+    fill: var(--bg-3);
+    stroke: var(--c);
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: v-node 2.4s var(--ease) infinite;
+  }
+  .v-hub {
+    fill: var(--c);
+  }
+  .v-hub-ring {
+    stroke: var(--c);
+    stroke-opacity: 0.35;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: v-ring 2.4s ease-out infinite;
+  }
+
+  /* flow */
+  .v-lane {
+    stroke: var(--border-2);
+    stroke-width: 1;
+  }
+  .v-packet {
+    fill: var(--c);
+    animation: v-travel 3.6s linear infinite;
+  }
+  .v-box {
+    fill: var(--bg-3);
+    stroke: color-mix(in srgb, var(--c) 55%, transparent);
+  }
+  .v-q {
+    fill: var(--c);
+    fill-opacity: 0.18;
+    animation: v-fill 1.25s ease-in-out infinite alternate;
+  }
+
+  /* mcp */
+  .v-cell {
+    fill: var(--surface-2);
+    stroke: var(--border);
+    animation: v-cell 6s ease-in-out infinite;
+  }
+
+  /* voice */
+  .v-bar {
+    fill: var(--c);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: v-wave 1.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes v-dash {
+    to { stroke-dashoffset: -18; }
+  }
+  @keyframes v-node {
+    0%, 100% { transform: scale(1); fill: var(--bg-3); }
+    15% { transform: scale(1.25); fill: var(--c); }
+    40% { transform: scale(1); fill: var(--bg-3); }
+  }
+  @keyframes v-ring {
+    0% { transform: scale(0.7); opacity: 0.9; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  @keyframes v-travel {
+    0% { transform: translateX(0); opacity: 0; }
+    8% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { transform: translateX(288px); opacity: 0; }
+  }
+  @keyframes v-fill {
+    from { fill-opacity: 0.12; }
+    to { fill-opacity: 0.6; }
+  }
+  @keyframes v-cell {
+    0%, 100% { fill: var(--surface-2); }
+    6% { fill: var(--c); }
+    18% { fill: var(--surface-2); }
+  }
+  @keyframes v-wave {
+    from { transform: scaleY(0.25); opacity: 0.55; }
+    to { transform: scaleY(1); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .case-viz :global(*) {
+      animation: none !important;
+    }
+  }
+
+  /* ---------- Featured layout ---------- */
+  .case-card--featured {
+    padding: var(--space-5);
+  }
+  .case-card--featured .case-title {
+    font-size: var(--fs-h2);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+  }
+  .case-card--featured .case-summary {
+    font-size: var(--fs-body);
+    max-width: 60ch;
+  }
+  .case-card--featured .case-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  @media (min-width: 960px) {
+    .case-card--featured {
+      flex-direction: row-reverse;
+      align-items: stretch;
+    }
+    .case-card--featured .case-viz {
+      flex: 0 0 44%;
+      aspect-ratio: auto;
+      min-height: 320px;
+    }
+    .case-card--featured .case-body {
+      padding: var(--space-5) var(--space-4);
+    }
+  }
+  @media (max-width: 640px) {
+    .case-card--featured .case-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

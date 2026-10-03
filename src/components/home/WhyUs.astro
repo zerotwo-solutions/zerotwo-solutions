@@ -1,0 +1,44 @@
+---
+// Honest comparison: the failure modes buyers fear vs. how we work. No competitor names.
+import SectionHeader from "../SectionHeader.astro";
+import Icon from "../Icon.astro";
+const rows = [
+  { risk: "Impressive AI demo that breaks on real data", us: "Pilot sprint on your data and infrastructure before you commit" },
+  { risk: "LLM invents numbers your users act on", us: "Deterministic calculation engines; the model explains, code computes" },
+  { risk: "Surprise LLM bills", us: "Per-request cost metering, prompt caching and spend caps from day one" },
+  { risk: "Junior team after the sales call", us: "Senior engineers on the call are the ones writing your code" },
+  { risk: "Black-box code you cannot maintain", us: "Your repos, your cloud, tests and docs, 100% IP assignment" },
+  { risk: "Messages dropped when traffic spikes", us: "Bounded queues, batch writes, burst detection and self-healing feeds" },
+];
+---
+<section class="section section--border" aria-labelledby="why-title">
+  <div class="container">
+    <SectionHeader eyebrow="Why ZeroTwo" title={`<span id="why-title">We remove the risks that sink AI projects</span>`} lead="Most AI and FinTech builds fail in the same predictable ways. We engineer against each one by default." />
+    <div class="table" role="table" aria-label="Common risks and how we handle them" data-reveal>
+      <div class="row head" role="row">
+        <span role="columnheader">Common risk</span>
+        <span role="columnheader">How we handle it</span>
+      </div>
+      {rows.map((r) => (
+        <div class="row" role="row">
+          <span role="cell" class="risk"><Icon name="close" size={16} /> {r.risk}</span>
+          <span role="cell" class="us"><Icon name="check" size={16} /> {r.us}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .table { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface); }
+  .row { display: grid; grid-template-columns: 1fr 1.2fr; }
+  .row > span { display: flex; gap: 12px; align-items: flex-start; padding: 18px 24px; font-size: var(--fs-sm); line-height: 1.5; }
+  .row > span :global(svg) { flex: none; margin-top: 2px; }
+  .row + .row { border-top: 1px solid var(--border); }
+  .row > span + span { border-left: 1px solid var(--border); }
+  .head > span { font-family: var(--mono); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); padding-block: 14px; }
+  .risk { color: var(--text-3); }
+  .risk :global(svg) { color: var(--down); }
+  .us { color: var(--text); background: linear-gradient(90deg, rgba(139,124,255,.06), transparent); }
+  .us :global(svg) { color: var(--up); }
+  @media (max-width: 720px) { .row { grid-template-columns: 1fr; } .row > span + span { border-left: 0; border-top: 1px dashed var(--border); } .head { display: none; } }
+</style>

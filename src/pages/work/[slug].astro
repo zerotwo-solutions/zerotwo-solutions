@@ -1,0 +1,395 @@
+---
+import type { GetStaticPaths } from "astro";
+import Base from "../../layouts/Base.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import FlowDiagram from "../../components/FlowDiagram.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import Icon from "../../components/Icon.astro";
+import { caseStudies, serviceBySlug, company, type CaseStudy, type Service } from "../../data/site";
+import { abs, breadcrumbSchema, ORG_ID } from "../../lib/seo";
+
+export const getStaticPaths = (() =>
+  caseStudies.map((study, i) => ({
+    params: { slug: study.slug },
+    props: {
+      study,
+      prev: caseStudies[(i - 1 + caseStudies.length) % caseStudies.length],
+      next: caseStudies[(i + 1) % caseStudies.length],
+    },
+  }))) satisfies GetStaticPaths;
+
+interface Props {
+  study: CaseStudy;
+  prev: CaseStudy;
+  next: CaseStudy;
+}
+
+const { study, prev, next } = Astro.props;
+const path = `/work/${study.slug}/`;
+const url = abs(path);
+
+// Keep the <title> within ~65 characters.
+const titleCandidates = [`${study.title} | ${company.name}`, `${study.title} | Case Study`];
+const fitted = titleCandidates.find((t) => t.length <= 65) ?? study.title;
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Work", path: "/work/" },
+  { name: study.title, path },
+];
+
+const usedServices = study.services.map(serviceBySlug).filter((s): s is Service => Boolean(s));
+const showNav = caseStudies.length > 1 && prev.slug !== study.slug;
+
+const schema = [
+  {
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline: study.title,
+    description: study.metaDescription,
+    abstract: study.summary,
+    genre: "Case study",
+    url,
+    mainEntityOfPage: url,
+    inLanguage: "en-US",
+    image: abs("/og.png"),
+    keywords: study.stack.join(", "),
+    about: usedServices.map((s) => ({ "@type": "Service", "@id": `${abs(`/services/${s.slug}/`)}#service`, name: s.title })),
+    author: { "@id": ORG_ID },
+    publisher: { "@id": ORG_ID },
+  },
+  breadcrumbSchema(crumbs),
+];
+---
+<Base title={fitted} rawTitle description={study.metaDescription} schema={schema} type="article">
+  <article style={`--c: ${study.accent}`}>
+    <header class="section cs-hero">
+      <div class="grid-bg" aria-hidden="true"></div>
+      <div class="container cs-hero-inner">
+        <Breadcrumbs items={crumbs} />
+        <span class="eyebrow cs-eyebrow">{study.industry}</span>
+        <h1 class="h1">{study.title}</h1>
+        <p class="lead">{study.summary}</p>
+        <dl class="cs-results" data-reveal>
+          {study.results.map((r) => (
+            <div class="cs-result">
+              <dt>{r.label}</dt>
+              <dd>{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </header>
+
+    <section class="section section--border">
+      <div class="container cs-split">
+        <div class="cs-side">
+          <SectionHeader eyebrow="Context" title="The challenge" />
+          <dl class="cs-facts">
+            <div>
+              <dt>Client</dt>
+              <dd>{study.client} <span class="subtle">(name withheld under NDA)</span></dd>
+            </div>
+            <div>
+              <dt>Industry</dt>
+              <dd>{study.industry}</dd>
+            </div>
+          </dl>
+        </div>
+        <p class="cs-challenge" data-reveal>{study.challenge}</p>
+      </div>
+    </section>
+
+    <section class="section section--border">
+      <div class="container cs-split">
+        <SectionHeader eyebrow="Solution" title="What we built" />
+        <ol class="cs-solution" role="list" data-reveal>
+          {study.solution.map((s, i) => (
+            <li>
+              <span class="cs-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <p>{s}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section--border">
+      <div class="container">
+        <SectionHeader eyebrow="Architecture" title="How the system fits together" lead="The path a request or message takes through the production system, end to end." />
+        <div data-reveal>
+          <FlowDiagram steps={study.flow} accent={study.accent} />
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--border">
+      <div class="container cs-meta">
+        <div class="cs-meta-col" data-reveal>
+          <h2 class="cs-meta-title">Tech stack</h2>
+          <ul class="tag-list" role="list">
+            {study.stack.map((t) => <li class="tag">{t}</li>)}
+          </ul>
+        </div>
+        <div class="cs-meta-col" data-reveal style="--reveal-delay:80ms">
+          <h2 class="cs-meta-title">Services used</h2>
+          <ul class="cs-services" role="list">
+            {usedServices.map((s) => (
+              <li>
+                <a class="cs-service" href={`/services/${s.slug}/`}>
+                  <span class="cs-service-icon" aria-hidden="true"><Icon name={s.icon} size={18} /></span>
+                  <span>{s.title}</span>
+                  <Icon name="arrow" size={16} class="cs-service-arrow" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  </article>
+
+  {showNav && (
+    <nav class="section section--border section--tight" aria-label="More case studies">
+      <div class="container cs-pager">
+        <a class="card card--hover cs-pager-link" href={`/work/${prev.slug}/`} rel="prev">
+          <span class="cs-pager-dir"><Icon name="arrow" size={14} class="cs-flip" /> Previous case study</span>
+          <span class="cs-pager-title">{prev.title}</span>
+        </a>
+        <a class="card card--hover cs-pager-link cs-pager-link--next" href={`/work/${next.slug}/`} rel="next">
+          <span class="cs-pager-dir">Next case study <Icon name="arrow" size={14} /></span>
+          <span class="cs-pager-title">{next.title}</span>
+        </a>
+      </div>
+    </nav>
+  )}
+
+  <CtaBand title="Have a similar system to build?" />
+</Base>
+
+<style>
+  .cs-hero {
+    overflow: hidden;
+    padding-bottom: calc(var(--section-y) * 0.6);
+  }
+  .cs-hero-inner {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+  }
+  .cs-hero-inner .h1 {
+    max-width: 22ch;
+  }
+  .cs-eyebrow::before {
+    background: var(--c);
+    box-shadow: 0 0 12px var(--c);
+  }
+  .cs-results {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    margin: var(--space-6) 0 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .cs-result {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+    padding: var(--space-6) var(--space-5) var(--space-6) 0;
+  }
+  .cs-result + .cs-result {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--border);
+  }
+  .cs-result dd {
+    margin: 0;
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .cs-result dt {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    line-height: 1.4;
+  }
+
+  .cs-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .cs-split :global(.section-head) {
+    margin-bottom: 0;
+  }
+  .cs-side {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .cs-facts {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    font-size: var(--fs-sm);
+  }
+  .cs-facts dt {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .cs-facts dd {
+    margin: var(--space-1) 0 0;
+    color: var(--text);
+  }
+  .cs-challenge {
+    font-size: var(--fs-lead);
+    line-height: 1.6;
+    color: var(--text);
+    max-width: 62ch;
+  }
+
+  .cs-solution {
+    border-top: 1px solid var(--border);
+  }
+  .cs-solution li {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--border);
+  }
+  .cs-solution p {
+    color: var(--text-2);
+  }
+  .cs-num {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--c);
+    line-height: 1.6rem;
+  }
+
+  .cs-meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .cs-meta-col {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .cs-meta-title {
+    font-size: var(--fs-h3);
+    letter-spacing: var(--tracking-snug);
+    line-height: 1.3;
+  }
+  .cs-services {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .cs-service {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-size: var(--fs-sm);
+    font-weight: 560;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .cs-service:hover {
+    border-color: var(--border-2);
+    background: var(--surface-2);
+  }
+  .cs-service-icon {
+    display: inline-grid;
+    place-items: center;
+    color: #c9c1ff;
+  }
+  .cs-service :global(.cs-service-arrow) {
+    margin-left: auto;
+    color: var(--text-3);
+    transition: transform 0.2s var(--ease), color 0.2s;
+  }
+  .cs-service:hover :global(.cs-service-arrow) {
+    transform: translateX(3px);
+    color: var(--text);
+  }
+
+  .cs-pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .cs-pager-link {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  .cs-pager-link--next {
+    text-align: right;
+    justify-items: end;
+  }
+  .cs-pager-dir {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .cs-pager-title {
+    font-size: var(--fs-h3);
+    font-weight: 590;
+    letter-spacing: var(--tracking-snug);
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+  .cs-pager :global(.cs-flip) {
+    transform: rotate(180deg);
+  }
+
+  @media (max-width: 960px) {
+    .cs-split,
+    .cs-meta {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+  @media (max-width: 760px) {
+    .cs-results {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .cs-result,
+    .cs-result + .cs-result {
+      padding: var(--space-5) var(--space-4) var(--space-5) 0;
+      border-left: 0;
+    }
+    .cs-result:nth-child(even) {
+      padding-left: var(--space-4);
+      border-left: 1px solid var(--border);
+    }
+    .cs-result:nth-child(n + 3) {
+      border-top: 1px solid var(--border);
+    }
+    .cs-pager {
+      grid-template-columns: 1fr;
+    }
+    .cs-pager-link--next {
+      text-align: left;
+      justify-items: start;
+    }
+  }
+</style>

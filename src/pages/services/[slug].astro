@@ -1,0 +1,363 @@
+---
+import type { GetStaticPaths } from "astro";
+import Base from "../../layouts/Base.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import ServiceCard from "../../components/ServiceCard.astro";
+import CaseCard from "../../components/CaseCard.astro";
+import Faq from "../../components/Faq.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import Icon from "../../components/Icon.astro";
+import { services, caseBySlug, process, company, type Service, type CaseStudy } from "../../data/site";
+import { abs, breadcrumbSchema, faqSchema, ORG_ID } from "../../lib/seo";
+
+export const getStaticPaths = (() => services.map((service) => ({ params: { slug: service.slug }, props: { service } }))) satisfies GetStaticPaths;
+
+interface Props {
+  service: Service;
+}
+
+const { service } = Astro.props;
+const path = `/services/${service.slug}/`;
+const url = abs(path);
+
+// Keep the <title> within ~65 characters: append the brand only when it fits.
+const brandSuffix = ` | ${company.name}`;
+const useRawTitle = service.metaTitle.length + brandSuffix.length > 65;
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Services", path: "/services/" },
+  { name: service.title, path },
+];
+
+const related = service.relatedWork.map(caseBySlug).filter((c): c is CaseStudy => Boolean(c));
+const otherServices = services.filter((s) => s.slug !== service.slug);
+
+const ctaTitles: Record<string, string> = {
+  "ai-agent-development": "Ready to put an AI agent into production?",
+  "mcp-server-development": "Want AI agents to use your product safely?",
+  "fintech-software-development": "Building a trading or market data product?",
+  "saas-development": "Need a SaaS product built to scale?",
+  "voice-ai-development": "Ready to give your product a voice?",
+};
+const ctaTitle = ctaTitles[service.slug] ?? `Let's talk about your ${service.title} project`;
+
+const schema = [
+  {
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: service.title,
+    serviceType: service.title,
+    description: service.answer,
+    url,
+    provider: { "@id": ORG_ID },
+    areaServed: [{ "@type": "Country", name: "United States" }],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `${service.title} deliverables`,
+      itemListElement: service.deliverables.map((d) => ({
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: d.title, description: d.body },
+      })),
+    },
+  },
+  breadcrumbSchema(crumbs),
+  faqSchema(service.faq),
+];
+---
+<Base
+  title={service.metaTitle}
+  rawTitle={useRawTitle}
+  description={service.metaDescription}
+  schema={schema}
+>
+  <section class="section sd-hero">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container sd-hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <div class="sd-kicker">
+        <span class="sd-icon" aria-hidden="true"><Icon name={service.icon} size={20} /></span>
+        <span class="eyebrow">{service.title}</span>
+      </div>
+      <h1 class="h1">{service.h1}</h1>
+      <p class="lead sd-answer">{service.answer}</p>
+      <div class="sd-actions">
+        <a class="btn btn--primary btn--lg" href="/contact/">Get your free roadmap <Icon name="arrow" size={16} class="arrow" /></a>
+        <a class="btn btn--lg" href="/work/">See case studies</a>
+      </div>
+      <p class="sd-note subtle">Technical roadmap within {company.roadmapTime} · NDA on request · You own 100% of the IP</p>
+    </div>
+  </section>
+
+  <section class="section section--border">
+    <div class="container sd-split">
+      <SectionHeader eyebrow="Outcomes" title="What you get" lead="The results this engagement is built to leave you with in production." />
+      <ul class="sd-outcomes" role="list" data-reveal>
+        {service.outcomes.map((o) => (
+          <li>
+            <span class="sd-check" aria-hidden="true"><Icon name="check" size={16} /></span>
+            <span>{o}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border">
+    <div class="container">
+      <SectionHeader eyebrow="Deliverables" title="What we deliver" />
+      <ul class="grid grid-4" role="list">
+        {service.deliverables.map((d, i) => (
+          <li class="card sd-deliverable" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+            <span class="sd-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <h3 class="h3">{d.title}</h3>
+            <p>{d.body}</p>
+          </li>
+        ))}
+      </ul>
+
+      <div class="sd-stack" data-reveal>
+        <h3 class="sd-stack-title">Tech stack</h3>
+        <ul class="tag-list" role="list">
+          {service.stack.map((t) => <li class="tag">{t}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section section--border">
+      <div class="container">
+        <SectionHeader eyebrow="Proof" title="Related case studies" lead="Production systems where we delivered this service. Client names are withheld under NDA.">
+          <a class="link-arrow" href="/work/">View all case studies <Icon name="arrow" size={16} /></a>
+        </SectionHeader>
+        <ul class="grid grid-2" role="list">
+          {related.map((study, i) => (
+            <li class="sd-case" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <CaseCard study={study} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="section section--border">
+    <div class="container">
+      <SectionHeader eyebrow="Process" title="How the engagement runs">
+        <a class="link-arrow" href="/process/">See our full delivery process <Icon name="arrow" size={16} /></a>
+      </SectionHeader>
+      <ol class="sd-process" role="list" data-reveal>
+        {process.map((p) => (
+          <li>
+            <span class="sd-step">{p.step}</span>
+            <h3 class="sd-step-title">{p.title}</h3>
+            <span class="sd-step-time">{p.time}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <Faq items={service.faq} title={`${service.title} FAQ`} />
+
+  <section class="section section--border">
+    <div class="container">
+      <SectionHeader eyebrow="Related services" title="Other ways we can help" />
+      <ul class="grid grid-4" role="list">
+        {otherServices.map((s) => (
+          <li class="sd-related">
+            <ServiceCard service={s} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title={ctaTitle} />
+</Base>
+
+<style>
+  .sd-hero {
+    overflow: hidden;
+    padding-bottom: calc(var(--section-y) * 0.6);
+  }
+  .sd-hero-inner {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+  }
+  .sd-hero-inner .h1 {
+    max-width: 20ch;
+  }
+  .sd-kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  .sd-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    border: 1px solid rgba(139, 124, 255, 0.4);
+    background: linear-gradient(180deg, rgba(139, 124, 255, 0.2), rgba(139, 124, 255, 0.04));
+    color: #c9c1ff;
+    box-shadow: var(--glow);
+  }
+  .sd-answer {
+    max-width: 68ch;
+    color: var(--text-2);
+    padding-left: var(--space-5);
+    border-left: 2px solid var(--accent);
+  }
+  .sd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .sd-note {
+    font-size: var(--fs-xs);
+    font-family: var(--mono);
+  }
+
+  .sd-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .sd-split :global(.section-head) {
+    margin-bottom: 0;
+  }
+  .sd-outcomes {
+    display: grid;
+    border-top: 1px solid var(--border);
+  }
+  .sd-outcomes li {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-body);
+    color: var(--text);
+  }
+  .sd-check {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(61, 220, 151, 0.12);
+    border: 1px solid rgba(61, 220, 151, 0.3);
+    color: var(--up);
+  }
+
+  .sd-deliverable {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .sd-deliverable p {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .sd-num {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+  }
+  .sd-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    margin-top: var(--space-7);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+  }
+  .sd-stack-title {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    line-height: 1.4;
+  }
+
+  .sd-case,
+  .sd-related {
+    display: flex;
+  }
+  .sd-case > :global(*),
+  .sd-related > :global(*) {
+    flex: 1;
+  }
+
+  .sd-process {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+  }
+  .sd-process li {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding: var(--space-5) var(--space-4) var(--space-5) 0;
+  }
+  .sd-process li + li {
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--border);
+  }
+  .sd-step {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+  }
+  .sd-step-title {
+    font-size: var(--fs-body);
+    font-weight: 590;
+    letter-spacing: var(--tracking-snug);
+    line-height: 1.3;
+  }
+  .sd-step-time {
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  @media (max-width: 960px) {
+    .sd-split {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .sd-process {
+      grid-template-columns: 1fr;
+    }
+    .sd-process li,
+    .sd-process li + li {
+      grid-template-columns: 40px minmax(0, 1fr) auto;
+      align-items: baseline;
+      padding: var(--space-4) 0;
+      border-left: 0;
+      border-bottom: 1px solid var(--border);
+    }
+  }
+  @media (max-width: 720px) {
+    .sd-stack {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+    .sd-answer {
+      padding-left: var(--space-4);
+    }
+  }
+</style>

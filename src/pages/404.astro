@@ -1,0 +1,223 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+
+const routes = [
+  { href: "/", label: "Home", body: "Start from the top.", icon: "spark" },
+  { href: "/services/", label: "Services", body: "AI agents, MCP, FinTech, SaaS.", icon: "agent" },
+  { href: "/work/", label: "Work", body: "Case studies from production.", icon: "chart" },
+  { href: "/contact/", label: "Contact", body: "Tell us what you want to build.", icon: "mail" },
+];
+---
+<Base
+  title="Page not found"
+  description="The page you were looking for does not exist. Find our services, case studies or contact the team."
+  noindex
+>
+  <section class="section nf" aria-labelledby="nf-title">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container nf-inner">
+      <span class="eyebrow">Error 404</span>
+      <h1 id="nf-title" class="h1">This route returned 404. <span class="gradient-text">Our agents are on it.</span></h1>
+      <p class="lead">
+        The page you asked for moved, never existed, or is still in a pull request. While our agents investigate, one
+        of these routes should get you where you are going.
+      </p>
+
+      <div class="term" aria-hidden="true">
+        <div class="term-bar"><span></span><span></span><span></span><em>agent.trace</em></div>
+        <pre class="term-body"><code><span class="t-dim">$</span> GET <span data-path>/this-page</span>
+<span class="t-down">✗ 404</span> Not Found <span class="t-dim">· 12 ms</span>
+<span class="t-dim">›</span> agent.dispatch(<span class="t-acc">"find-route"</span>)
+<span class="t-up">✓</span> 4 working routes found<span class="cursor"></span></code></pre>
+      </div>
+
+      <nav class="routes" aria-label="Helpful links">
+        <ul class="grid grid-4" role="list">
+          {routes.map((r) => (
+            <li>
+              <a class="card card--hover spotlight route" href={r.href}>
+                <span class="route-icon"><Icon name={r.icon} size={20} /></span>
+                <span class="route-label">{r.label} <Icon name="arrow" size={16} class="route-arrow" /></span>
+                <span class="subtle route-body">{r.body}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <p class="hint subtle">
+        Or press
+        <button type="button" class="kbd-btn" data-palette-open aria-label="Open the command menu (Command K or Control K)">
+          <kbd>⌘K</kbd><span class="slash">/</span><kbd>Ctrl K</kbd>
+        </button>
+        to search every page.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    overflow: hidden;
+    min-height: calc(100vh - var(--nav-h));
+    display: grid;
+    align-items: center;
+  }
+  .nf-inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .nf-inner .h1 {
+    max-width: 20ch;
+  }
+
+  .term {
+    width: 100%;
+    max-width: 560px;
+    margin-block: var(--space-3);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-2);
+    background: var(--bg-2);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+  }
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .term-bar span {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--border-2);
+  }
+  .term-bar em {
+    margin-left: auto;
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+  .term-body {
+    margin: 0;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    line-height: 1.9;
+    color: var(--text-2);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .t-dim {
+    color: var(--text-3);
+  }
+  .t-down {
+    color: var(--down);
+  }
+  .t-up {
+    color: var(--up);
+  }
+  .t-acc {
+    color: var(--accent-2);
+  }
+  .cursor {
+    display: inline-block;
+    width: 7px;
+    height: 1.1em;
+    margin-left: 6px;
+    vertical-align: text-bottom;
+    background: var(--accent);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .routes {
+    width: 100%;
+  }
+  .route {
+    display: grid;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+  }
+  .route-icon {
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .route-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 560;
+    letter-spacing: var(--tracking-snug);
+  }
+  .route :global(.route-arrow) {
+    color: var(--text-3);
+    transition: transform 0.2s var(--ease), color 0.2s;
+  }
+  .route:hover :global(.route-arrow) {
+    color: var(--text);
+    transform: translateX(3px);
+  }
+  .route-body {
+    font-size: var(--fs-sm);
+  }
+
+  .hint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-sm);
+  }
+  .kbd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .kbd-btn:hover {
+    border-color: var(--border-2);
+    color: var(--text);
+  }
+  kbd {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-2);
+    background: var(--bg-3);
+  }
+  .slash {
+    color: var(--text-3);
+  }
+</style>
+
+<script>
+  // Show the path that was actually requested in the trace (text only, never HTML).
+  const pathEl = document.querySelector<HTMLElement>("[data-path]");
+  if (pathEl) {
+    let path = window.location.pathname || "/";
+    try {
+      path = decodeURIComponent(path);
+    } catch {
+      /* keep the encoded path */
+    }
+    if (path && path !== "/404/" && path !== "/404.html") pathEl.textContent = path.slice(0, 80);
+  }
+</script>

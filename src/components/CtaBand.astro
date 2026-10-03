@@ -1,0 +1,39 @@
+---
+import { company } from "../data/site";
+import Icon from "./Icon.astro";
+interface Props { title?: string; lead?: string }
+const {
+  title = "Have an AI or FinTech product to build?",
+  lead = `Tell us what you want to ship. You will get a technical roadmap and a fixed-scope proposal within ${company.roadmapTime}.`,
+} = Astro.props;
+---
+<section class="section cta" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="cta-card" data-reveal>
+      <div class="grid-bg" aria-hidden="true"></div>
+      <div class="cta-glow" aria-hidden="true"></div>
+      <span class="eyebrow">Start a project</span>
+      <h2 id="cta-title" class="h2">{title}</h2>
+      <p class="lead">{lead}</p>
+      <div class="cta-actions">
+        <a class="btn btn--primary btn--lg" href="/contact/">Get your free roadmap <Icon name="arrow" size={16} class="arrow" /></a>
+        <a class="btn btn--lg" href={`mailto:${company.email}`}><Icon name="mail" size={16} /> {company.email}</a>
+      </div>
+      <ul class="cta-points" role="list">
+        <li><Icon name="check" size={16} /> Reply within {company.responseTime}</li>
+        <li><Icon name="check" size={16} /> NDA on request</li>
+        <li><Icon name="check" size={16} /> You own 100% of the IP</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<style>
+  .cta-card { position: relative; overflow: hidden; display: grid; justify-items: center; text-align: center; gap: var(--space-5); padding: clamp(40px, 7vw, 96px) clamp(20px, 5vw, 64px); border-radius: 28px; border: 1px solid var(--border); background: linear-gradient(180deg, #111219, #0a0b0e); }
+  .cta-card > :not(.grid-bg):not(.cta-glow) { position: relative; }
+  .cta-glow { position: absolute; inset: auto 10% -60% 10%; height: 120%; background: radial-gradient(closest-side, rgba(139,124,255,.35), transparent); filter: blur(40px); }
+  .cta-card .h2 { max-width: 18ch; }
+  .cta-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .cta-points { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: var(--fs-sm); color: var(--text-2); }
+  .cta-points li { display: inline-flex; align-items: center; gap: 6px; }
+  .cta-points :global(svg) { color: var(--up); }
+</style>

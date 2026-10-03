@@ -1,0 +1,172 @@
+---
+// Architecture flow: an ordered list of steps, horizontal on desktop and vertical on mobile.
+// A CSS-only packet travels the track; each node pulses as the packet reaches it.
+interface Props {
+  steps: string[];
+  /** Any CSS color; defaults to the brand accent. */
+  accent?: string;
+  /** Accessible name for the list. */
+  label?: string;
+}
+
+const { steps, accent = "var(--accent)", label = "Architecture flow" } = Astro.props;
+const n = Math.max(steps.length, 1);
+---
+<div class="flow" style={`--c: ${accent}; --n: ${n};`}>
+  <div class="flow-track" aria-hidden="true">
+    <span class="flow-line"></span>
+    {n > 1 && <span class="flow-packet"></span>}
+  </div>
+  <ol class="flow-list" role="list" aria-label={label}>
+    {steps.map((step, i) => (
+      <li class="flow-step" style={`--i: ${i}`}>
+        <span class="flow-node" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+        <span class="flow-label">{step}</span>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .flow {
+    --node: 44px;
+    --cycle: calc(var(--n) * 0.9s);
+    position: relative;
+    padding: var(--space-6) var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(80% 120% at 50% 0%, color-mix(in srgb, var(--c) 10%, transparent), transparent 70%),
+      var(--bg-2);
+  }
+  .flow-list {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 0;
+  }
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-2);
+    text-align: center;
+  }
+  .flow-node {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--node);
+    height: var(--node);
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
+    background: var(--bg-3);
+    color: var(--text-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    animation: flow-pulse var(--cycle) linear infinite;
+    animation-delay: calc(var(--cycle) * var(--i) / max(var(--n) - 1, 1));
+  }
+  .flow-label {
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--text);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  /* Track sits behind the nodes, from the first node's center to the last's. */
+  .flow-track {
+    position: absolute;
+    z-index: 0;
+    top: calc(var(--space-6) + var(--node) / 2 - 1px);
+    left: calc(var(--space-4) + (100% - 2 * var(--space-4)) / (2 * var(--n)));
+    right: calc(var(--space-4) + (100% - 2 * var(--space-4)) / (2 * var(--n)));
+    height: 2px;
+  }
+  .flow-line {
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c) 20%, transparent), color-mix(in srgb, var(--c) 70%, transparent), color-mix(in srgb, var(--c) 20%, transparent));
+  }
+  .flow-packet {
+    position: absolute;
+    inset: 0;
+    animation: flow-x var(--cycle) linear infinite;
+  }
+  .flow-packet::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 25%, transparent), 0 0 18px var(--c);
+  }
+
+  @keyframes flow-x {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+  }
+  @keyframes flow-y {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
+  }
+  @keyframes flow-pulse {
+    0% { border-color: var(--c); color: var(--text); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 22%, transparent), 0 0 24px color-mix(in srgb, var(--c) 60%, transparent); }
+    14%, 100% { border-color: color-mix(in srgb, var(--c) 55%, transparent); color: var(--text-2); box-shadow: none; }
+  }
+
+  /* Vertical layout on small screens: equal-height rows keep the track aligned. */
+  @media (max-width: 899px) {
+    .flow {
+      padding: var(--space-4) var(--space-5);
+    }
+    .flow-list {
+      grid-template-columns: 1fr;
+      grid-auto-rows: 1fr;
+    }
+    .flow-step {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-2) 0;
+      text-align: left;
+    }
+    .flow-track {
+      top: calc(var(--space-4) + (100% - 2 * var(--space-4)) / (2 * var(--n)));
+      bottom: calc(var(--space-4) + (100% - 2 * var(--space-4)) / (2 * var(--n)));
+      left: calc(var(--space-5) + var(--node) / 2 - 1px);
+      right: auto;
+      width: 2px;
+      height: auto;
+    }
+    .flow-line {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--c) 20%, transparent), color-mix(in srgb, var(--c) 70%, transparent), color-mix(in srgb, var(--c) 20%, transparent));
+    }
+    .flow-packet {
+      animation-name: flow-y;
+    }
+    .flow-packet::before {
+      top: 0;
+      left: 50%;
+      margin: -5px 0 0 -5px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flow-node,
+    .flow-packet {
+      animation: none !important;
+    }
+    .flow-packet {
+      display: none;
+    }
+  }
+</style>

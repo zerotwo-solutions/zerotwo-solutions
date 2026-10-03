@@ -1,0 +1,97 @@
+---
+// Service summary card. The whole card is clickable through one stretched link.
+import type { Service } from "../data/site";
+import Icon from "./Icon.astro";
+
+interface Props {
+  service: Service;
+  /** Zero-based position; renders as "01", "02"... */
+  index?: number;
+  /** Heading level for the card title (h3 under a section h2 by default). */
+  as?: "h2" | "h3";
+}
+
+const { service, index, as: Tag = "h3" } = Astro.props;
+const num = typeof index === "number" ? String(index + 1).padStart(2, "0") : undefined;
+---
+<article class="card card--hover spotlight svc-card">
+  <div class="svc-top">
+    <span class="svc-icon" aria-hidden="true"><Icon name={service.icon} size={22} /></span>
+    {num && <span class="svc-num" aria-hidden="true">{num}</span>}
+  </div>
+  <Tag class="h3 svc-title">{service.title}</Tag>
+  <p class="svc-short">{service.short}</p>
+  <a class="link-arrow svc-link" href={`/services/${service.slug}/`}>
+    Learn more<span class="sr-only"> about {service.title}</span>
+    <Icon name="arrow" size={16} class="svc-arrow" />
+  </a>
+</article>
+
+<style>
+  .svc-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    height: 100%;
+  }
+  .svc-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+  .svc-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-2);
+    background: linear-gradient(180deg, rgba(139, 124, 255, 0.16), rgba(139, 124, 255, 0.04));
+    color: #c9c1ff;
+    transition: box-shadow 0.3s, border-color 0.3s;
+  }
+  .svc-num {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+  }
+  .svc-short {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    flex: 1;
+  }
+  .svc-link {
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    transition: color 0.2s;
+  }
+  /* Stretched link: the single <a> covers the card. */
+  .svc-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .svc-link:focus-visible {
+    outline: none;
+  }
+  .svc-card:has(.svc-link:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .svc-card:hover .svc-link {
+    color: var(--text);
+  }
+  .svc-card:hover .svc-icon {
+    border-color: rgba(139, 124, 255, 0.45);
+    box-shadow: var(--glow);
+  }
+  .svc-card :global(.svc-arrow) {
+    transition: transform 0.2s var(--ease);
+  }
+  .svc-card:hover :global(.svc-arrow) {
+    transform: translateX(3px);
+  }
+</style>

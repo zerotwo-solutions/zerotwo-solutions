@@ -1,0 +1,457 @@
+---
+import Base from "../layouts/Base.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import CtaBand from "../components/CtaBand.astro";
+import Faq from "../components/Faq.astro";
+import Icon from "../components/Icon.astro";
+import { company, process, engagementModels, guarantees } from "../data/site";
+import { abs, breadcrumbSchema, faqSchema, ORG_ID, WEBSITE_ID } from "../lib/seo";
+
+const title = "How We Work: Process, Pilots & Engagement Models";
+const description = `How ${company.name} works with US product teams: discovery call, technical roadmap in ${company.roadmapTime}, fixed-scope pilot sprint, weekly demos and US time-zone overlap.`;
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Process", path: "/process/" },
+];
+
+const communication = [
+  { icon: "clock", title: "Real-time overlap", body: `${company.overlap}, for calls, code reviews and incident response.` },
+  { icon: "play", title: "Weekly demos", body: "Every week you see working software on a staging environment you can click through, not a slide deck." },
+  { icon: "users", title: "Your channels", body: "We join your Slack or Microsoft Teams workspace and your issue tracker, so there is no extra tool to check." },
+  { icon: "mail", title: "Written updates", body: "A short weekly summary of what shipped, what is next and any risks, written for both engineers and stakeholders." },
+  { icon: "globe", title: "Clear US English", body: "Specs, pull requests, documentation and meetings in plain, direct US English with no translation layer." },
+  { icon: "bolt", title: `Reply within ${company.responseTime}`, body: "Questions get answers fast during the week, and production incidents are handled as the top priority." },
+];
+
+const security = [
+  { title: "NDA before kickoff", body: "We sign a mutual NDA on request before you share anything sensitive, including on the first call." },
+  { title: "IP assignment", body: "Our contract assigns all code, designs and documentation to you. You own 100% of the IP from the first commit." },
+  { title: "Your repos, your cloud", body: "We work inside your GitHub or GitLab organization and your AWS or other cloud accounts. Nothing is hosted on our side." },
+  { title: "Least-privilege access", body: "Scoped IAM roles, MFA on every account and secrets in a manager, never in code. Access is removed the day it is no longer needed." },
+];
+
+const faq = [
+  {
+    q: "What kind of contract do you use?",
+    a: "A standard services agreement with a statement of work for each phase. Pilots and milestone builds have a fixed scope and price agreed before work starts; ongoing partnerships run on a monthly retainer. There is no long-term lock-in, and the contract assigns all IP to you.",
+  },
+  {
+    q: "How do you handle US time zones?",
+    a: `We guarantee ${company.overlap}. Calls, code reviews and incident response happen inside that window, and written updates keep everyone aligned between calls. We reply to messages within ${company.responseTime}.`,
+  },
+  {
+    q: "How does a pilot sprint work?",
+    a: "A pilot is a 1 to 2 week, fixed-price sprint that delivers a working slice of your product on your data and infrastructure. At the end you have running software, a clear view of the architecture and an honest estimate for the full build, with no obligation to continue.",
+  },
+  {
+    q: "Who owns the code?",
+    a: "You do. Work happens in your repositories and cloud accounts from the first commit, and the contract assigns 100% of the code and intellectual property to you. If we part ways, there is nothing to hand over because you already have everything.",
+  },
+  {
+    q: "What happens after launch?",
+    a: "You choose. We can stay on as your engineering partner on a monthly retainer for monitoring, cost tuning, fixes and new features, or hand the system over to your in-house team with documentation and a structured handover.",
+  },
+];
+
+const schema = [
+  {
+    "@type": "WebPage",
+    "@id": `${abs("/process/")}#webpage`,
+    url: abs("/process/"),
+    name: "How we work",
+    description,
+    inLanguage: "en-US",
+    isPartOf: { "@id": WEBSITE_ID },
+    about: { "@id": ORG_ID },
+  },
+  breadcrumbSchema(crumbs),
+  faqSchema(faq),
+];
+---
+<Base title={title} description={description} schema={schema}>
+  <section class="section page-hero" aria-labelledby="process-title">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">How we work</span>
+      <h1 id="process-title" class="h1">A process built for <span class="gradient-text">US product teams</span></h1>
+      <p class="lead">
+        From first call to production in clear, low-risk steps. You get a technical roadmap within {company.roadmapTime},
+        judge us on a working pilot, and see shipped software every week after that.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn--primary btn--lg" href="/contact/">Book a discovery call <Icon name="arrow" size={16} class="arrow" /></a>
+        <a class="btn btn--lg" href="#engagement">Compare engagement models</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="steps-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="The process"
+        title={`<span id="steps-title">Five steps from idea to production</span>`}
+        lead="Each step ends with something concrete in your hands, so you can decide to continue with full information."
+      />
+      <div class="timeline" data-timeline>
+        <span class="tl-track" aria-hidden="true"><span class="tl-fill"></span></span>
+        <ol class="tl-list" role="list">
+        {process.map((p) => (
+          <li class="tl-step" data-step>
+            <span class="tl-marker" aria-hidden="true">{p.step}</span>
+            <div class="tl-card card">
+              <div class="tl-meta">
+                <span class="eyebrow tl-num">Step {p.step}</span>
+                <span class="tag"><Icon name="clock" size={14} />{p.time}</span>
+              </div>
+              <h3 class="h3">{p.title}</h3>
+              <p class="muted">{p.body}</p>
+            </div>
+          </li>
+        ))}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="engagement" class="section section--border" aria-labelledby="engagement-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="Engagement models"
+        title={`<span id="engagement-title">Start small, scale when it works</span>`}
+        lead="The lowest-risk way to start is a fixed-scope pilot. There are no long-term contracts on any model."
+      />
+      <ul class="grid grid-3" role="list">
+        {engagementModels.map((m, i) => (
+          <li class="card card--hover spotlight model" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+            <span class="eyebrow">Option {String(i + 1).padStart(2, "0")}</span>
+            <h3 class="h3">{m.title}</h3>
+            <p class="muted">{m.body}</p>
+            <p class="best"><span class="subtle">Best for</span> {m.best}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="guarantees-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="Our commitments"
+        title={`<span id="guarantees-title">Guarantees on every engagement</span>`}
+      />
+      <ul class="grid grid-3" role="list">
+        {guarantees.map((g, i) => (
+          <li class="card item" data-reveal style={`--reveal-delay:${(i % 3) * 60}ms`}>
+            <span class="check" aria-hidden="true"><Icon name="check" size={16} /></span>
+            <h3 class="h3">{g.title}</h3>
+            <p class="muted">{g.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="comms-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="Communication & time zones"
+        title={`<span id="comms-title">Working together feels like one team</span>`}
+        lead="Remote-first does not mean hard to reach. These are the defaults on every project."
+      />
+      <ul class="grid grid-3" role="list">
+        {communication.map((c, i) => (
+          <li class="card item" data-reveal style={`--reveal-delay:${(i % 3) * 60}ms`}>
+            <span class="icon-chip"><Icon name={c.icon} size={20} /></span>
+            <h3 class="h3">{c.title}</h3>
+            <p class="muted">{c.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="security-title">
+    <div class="container split">
+      <SectionHeader
+        eyebrow="Security & IP"
+        title={`<span id="security-title">Your code, your cloud, your IP</span>`}
+        lead="We are set up so you never depend on us to access what you paid for."
+      >
+        <span class="icon-chip icon-chip--lg" aria-hidden="true"><Icon name="lock" size={24} /></span>
+      </SectionHeader>
+      <ul class="security" role="list" data-reveal>
+        {security.map((s) => (
+          <li>
+            <Icon name="shield" size={20} class="sec-icon" />
+            <div>
+              <h3 class="h3">{s.title}</h3>
+              <p class="muted">{s.body}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Process questions, answered" lead="Straight answers about contracts, time zones, pilots and ownership." />
+
+  <CtaBand title="Start with a 30-minute discovery call" />
+</Base>
+
+<style>
+  .page-hero {
+    overflow: hidden;
+    padding-block: calc(var(--section-y) * 0.7) calc(var(--section-y) * 0.6);
+  }
+  .hero-inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero-inner .h1 {
+    max-width: 18ch;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  /* ---------- Timeline ---------- */
+  .timeline {
+    --marker: 44px;
+    --progress: 1;
+    position: relative;
+    max-width: 860px;
+  }
+  .tl-list {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .tl-track {
+    position: absolute;
+    top: calc(var(--marker) / 2);
+    bottom: calc(var(--marker) / 2);
+    left: calc(var(--marker) / 2 - 1px);
+    width: 2px;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .tl-fill {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    transform-origin: top;
+    transform: scaleY(var(--progress));
+  }
+  .tl-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--marker) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .tl-marker {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: var(--marker);
+    height: var(--marker);
+    border-radius: 999px;
+    border: 1px solid var(--border-2);
+    background: var(--bg-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+    transition: color 0.4s, border-color 0.4s, box-shadow 0.4s, background 0.4s;
+  }
+  .tl-card {
+    display: grid;
+    gap: var(--space-3);
+    transition: border-color 0.4s, opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  }
+  .tl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .tl-meta .tag {
+    gap: 6px;
+    font-family: var(--mono);
+  }
+  .tl-step.is-active .tl-marker {
+    color: var(--text);
+    border-color: var(--accent);
+    background: #15132a;
+    box-shadow: var(--glow);
+  }
+  .tl-step.is-active .tl-card {
+    border-color: var(--border-2);
+  }
+  /* Enhanced state (set by script): steps light up as the progress line reaches them */
+  .timeline.is-live .tl-step:not(.is-active) .tl-card {
+    opacity: 0.55;
+  }
+
+  /* ---------- Cards ---------- */
+  .model,
+  .item {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+  .best {
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    font-weight: 560;
+  }
+  .best .subtle {
+    display: block;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .model {
+    grid-template-rows: auto auto 1fr auto;
+  }
+  .icon-chip {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: var(--space-2);
+    border-radius: 10px;
+    border: 1px solid var(--border-2);
+    background: var(--surface-2);
+    color: var(--accent);
+  }
+  .icon-chip--lg {
+    width: 52px;
+    height: 52px;
+    margin-top: var(--space-2);
+    color: var(--accent-2);
+  }
+  .check {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(61, 220, 151, 0.12);
+    color: var(--up);
+  }
+
+  /* ---------- Security ---------- */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .split :global(.section-head) {
+    margin-bottom: 0;
+  }
+  .security {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+  }
+  .security li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .security li > div {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .security :global(.sec-icon) {
+    margin-top: 2px;
+    color: var(--accent-2);
+  }
+
+  @media (max-width: 860px) {
+    .split {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+  @media (max-width: 520px) {
+    .timeline {
+      --marker: 36px;
+    }
+    .tl-step {
+      gap: var(--space-3);
+    }
+    .tl-card {
+      padding: var(--space-5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .timeline.is-live .tl-step:not(.is-active) .tl-card {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  // Scroll-linked progress line. Without JS (or with reduced motion) the line is full and every step is lit.
+  const timeline = document.querySelector<HTMLElement>("[data-timeline]");
+  const steps = Array.from(document.querySelectorAll<HTMLElement>("[data-step]"));
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (timeline && steps.length) {
+    if (reduced || !("IntersectionObserver" in window)) {
+      steps.forEach((s) => s.classList.add("is-active"));
+    } else {
+      timeline.classList.add("is-live");
+      let ticking = false;
+      const update = () => {
+        ticking = false;
+        const line = window.innerHeight * 0.6;
+        const first = steps[0].getBoundingClientRect().top;
+        const last = steps[steps.length - 1].getBoundingClientRect().top;
+        const span = Math.max(1, last - first);
+        const progress = Math.min(1, Math.max(0, (line - first) / span));
+        timeline.style.setProperty("--progress", progress.toFixed(4));
+        for (const s of steps) s.classList.toggle("is-active", s.getBoundingClientRect().top + 22 <= line);
+      };
+      const onScroll = () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      };
+      const io = new IntersectionObserver((entries) => {
+        const visible = entries.some((e) => e.isIntersecting);
+        if (visible) {
+          window.addEventListener("scroll", onScroll, { passive: true });
+          window.addEventListener("resize", onScroll, { passive: true });
+          update();
+        } else {
+          window.removeEventListener("scroll", onScroll);
+          window.removeEventListener("resize", onScroll);
+          update();
+        }
+      });
+      io.observe(timeline);
+      update();
+    }
+  }
+</script>

@@ -1,0 +1,401 @@
+---
+import Base from "../layouts/Base.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import CtaBand from "../components/CtaBand.astro";
+import Icon from "../components/Icon.astro";
+import { company, stats, caseStudies, stack, guarantees } from "../data/site";
+import { abs, breadcrumbSchema, ORG_ID, WEBSITE_ID } from "../lib/seo";
+
+const years = Math.max(1, new Date().getFullYear() - Number(company.foundingYear));
+const fmt = new Intl.NumberFormat("en-US");
+
+const title = "About Us: Senior AI & FinTech Engineering Studio";
+const description = `${company.name} is a senior, remote-first engineering studio founded in ${company.foundingYear}. ${years}+ years shipping FinTech platforms, AI agents and SaaS for US product teams.`;
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "About", path: "/about/" },
+];
+
+const facts = [
+  { label: "Founded", value: company.foundingYear },
+  { label: "Shipping production software", value: `${years}+ years` },
+  { label: "Team model", value: "Remote-first" },
+  { label: "Built for", value: "US product teams" },
+];
+
+const principles = [
+  {
+    icon: "bolt",
+    title: "Production over demos",
+    body: "A prototype that impresses in a meeting is the easy part. We design for the day real users, real data and real traffic arrive: tests, monitoring, rollbacks and on-call included.",
+  },
+  {
+    icon: "code",
+    title: "Deterministic where it matters",
+    body: "Models explain; code calculates. Prices, scores, limits and permissions live in deterministic, tested code that AI calls as a tool, so the numbers your users see are never guessed.",
+  },
+  {
+    icon: "shield",
+    title: "Own the outcome",
+    body: "We measure ourselves by what ships and what it does for the business, not by hours logged. The engineers on the discovery call are the engineers accountable for the result.",
+  },
+  {
+    icon: "cloud",
+    title: "Boring infrastructure, bold products",
+    body: "Postgres, Redis, AWS and CI/CD that your team already understands. Proven foundations leave the risk budget for the product decisions that actually set you apart.",
+  },
+];
+
+const schema = [
+  {
+    "@type": "AboutPage",
+    "@id": `${abs("/about/")}#webpage`,
+    url: abs("/about/"),
+    name: `About ${company.name}`,
+    description,
+    inLanguage: "en-US",
+    isPartOf: { "@id": WEBSITE_ID },
+    mainEntity: { "@id": ORG_ID },
+  },
+  breadcrumbSchema(crumbs),
+];
+---
+<Base title={title} description={description} schema={schema}>
+  <section class="section page-hero" aria-labelledby="about-title">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">About {company.shortName}</span>
+      <h1 id="about-title" class="h1">Senior engineers who <span class="gradient-text">own outcomes</span></h1>
+      <p class="lead">
+        {company.name} is a senior engineering studio founded in {company.foundingYear}. For {years}+ years we have shipped
+        production FinTech platforms, AI agents and SaaS for teams that need software to work on day one, not just in a demo.
+      </p>
+      <dl class="facts" data-reveal>
+        {facts.map((f) => (
+          <div class="fact">
+            <dt class="subtle">{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="story-title">
+    <div class="container story">
+      <SectionHeader eyebrow="Our story" title={`<span id="story-title">Built where a wrong number costs real money</span>`} />
+      <div class="prose" data-reveal>
+        <p>
+          Since {company.foundingYear} we have built software for environments where mistakes are visible immediately:
+          live market data feeds that cannot drop messages at the open, analytics dashboards that thousands of traders
+          watch in real time, and subscription billing that has to be right every month.
+        </p>
+        <p>
+          That background shapes how we build AI. When large language models became practical, we brought the same
+          discipline to agents, MCP servers and voice assistants: typed tools, server-side guardrails, tracing, evaluation
+          sets and cost controls. The result is AI features a business can trust with its customers and afford at scale.
+        </p>
+        <p>
+          We are <strong>remote-first and built to work with US teams</strong>. That means {company.overlap}, written
+          updates in clear US English, weekly demos you can click through, and code that lives in your repositories from
+          the first commit.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="principles-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="How we think"
+        title={`<span id="principles-title">Four principles behind every project</span>`}
+        lead="They decide what we build first, what we refuse to cut, and how we spend your budget."
+      />
+      <ul class="grid grid-2" role="list">
+        {principles.map((p, i) => (
+          <li class="card card--hover spotlight principle" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+            <span class="icon-chip"><Icon name={p.icon} size={20} /></span>
+            <h3 class="h3">{p.title}</h3>
+            <p class="muted">{p.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="numbers-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="By the numbers"
+        title={`<span id="numbers-title">Proof from production, not pitch decks</span>`}
+        lead="Every figure comes from software we built and run in production."
+      />
+      <ul class="grid grid-4 stats" role="list">
+        {stats.map((s, i) => (
+          <li class="card stat" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+            <span class="stat-value" data-count={s.value} data-suffix={s.suffix}>{fmt.format(s.value)}{s.suffix}</span>
+            <span class="muted stat-label">{s.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="shipped-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="What we've shipped"
+        title={`<span id="shipped-title">Recent production work</span>`}
+        lead="AI agents, MCP servers, market data pipelines and voice AI, all running for paying users."
+      >
+        <a class="link-arrow" href="/work/">See all case studies <Icon name="arrow" size={16} /></a>
+      </SectionHeader>
+      <ul class="shipped" role="list" data-reveal>
+        {caseStudies.map((c) => (
+          <li>
+            <a class="shipped-row" href={`/work/${c.slug}/`}>
+              <span class="shipped-dot" style={`--dot:${c.accent}`} aria-hidden="true"></span>
+              <span class="shipped-text">
+                <span class="eyebrow shipped-industry">{c.industry}</span>
+                <span class="shipped-title">{c.title}</span>
+                <span class="subtle shipped-summary">{c.summary}</span>
+              </span>
+              <Icon name="arrow" size={18} class="shipped-arrow" />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="stack-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="Tech stack"
+        title={`<span id="stack-title">Tools we run in production</span>`}
+        lead="We pick per workload, but these are the technologies we know deeply and ship with every week."
+      />
+      <dl class="stack" data-reveal>
+        {stack.map((g) => (
+          <div class="stack-row">
+            <dt class="stack-group">{g.group}</dt>
+            <dd>
+              <ul class="tag-list" role="list">
+                {g.items.map((t) => <li class="tag">{t}</li>)}
+              </ul>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section section--border" aria-labelledby="guarantees-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="Our commitments"
+        title={`<span id="guarantees-title">What you can hold us to</span>`}
+        lead="Written into how we work, not just into a sales deck."
+      />
+      <ul class="grid grid-3" role="list">
+        {guarantees.map((g, i) => (
+          <li class="card guarantee" data-reveal style={`--reveal-delay:${(i % 3) * 60}ms`}>
+            <span class="check" aria-hidden="true"><Icon name="check" size={16} /></span>
+            <h3 class="h3">{g.title}</h3>
+            <p class="muted">{g.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Work with senior engineers from day one" />
+</Base>
+
+<style>
+  .page-hero {
+    overflow: hidden;
+    padding-block: calc(var(--section-y) * 0.7) calc(var(--section-y) * 0.6);
+  }
+  .hero-inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .hero-inner .h1 {
+    max-width: 18ch;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 1px;
+    width: 100%;
+    max-width: 880px;
+    margin: var(--space-4) 0 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--border);
+    overflow: hidden;
+  }
+  .fact {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-2);
+  }
+  .fact dt {
+    font-size: var(--fs-xs);
+  }
+  .fact dd {
+    margin: 0;
+    font-weight: 560;
+    letter-spacing: var(--tracking-snug);
+  }
+
+  .story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .story :global(.section-head) {
+    margin-bottom: 0;
+  }
+
+  .principle,
+  .guarantee {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+  .icon-chip {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: var(--space-2);
+    border-radius: 10px;
+    border: 1px solid var(--border-2);
+    background: var(--surface-2);
+    color: var(--accent);
+  }
+  .check {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(61, 220, 151, 0.12);
+    color: var(--up);
+  }
+
+  .stat {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+  }
+  .stat-value {
+    font-size: var(--fs-h2);
+    font-weight: 620;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: var(--fs-sm);
+  }
+
+  .shipped {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+  }
+  .shipped li {
+    border-bottom: 1px solid var(--border);
+  }
+  .shipped-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-5);
+    align-items: center;
+    padding: var(--space-5) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+  .shipped-row:hover {
+    background: var(--surface);
+  }
+  .shipped-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--dot);
+    box-shadow: 0 0 14px var(--dot);
+  }
+  .shipped-text {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .shipped-industry::before {
+    display: none;
+  }
+  .shipped-title {
+    font-size: var(--fs-h3);
+    font-weight: 560;
+    letter-spacing: var(--tracking-snug);
+    line-height: 1.3;
+  }
+  .shipped-summary {
+    font-size: var(--fs-sm);
+    max-width: 80ch;
+  }
+  .shipped-row :global(.shipped-arrow) {
+    color: var(--text-3);
+    transition: transform 0.2s var(--ease), color 0.2s;
+  }
+  .shipped-row:hover :global(.shipped-arrow) {
+    color: var(--text);
+    transform: translateX(3px);
+  }
+
+  .stack {
+    margin: 0;
+    border-top: 1px solid var(--border);
+  }
+  .stack-row {
+    display: grid;
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stack-group {
+    font-weight: 560;
+  }
+  .stack dd {
+    margin: 0;
+  }
+
+  @media (max-width: 860px) {
+    .story {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+  @media (max-width: 640px) {
+    .stack-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+    .shipped-row {
+      gap: var(--space-4);
+    }
+  }
+</style>

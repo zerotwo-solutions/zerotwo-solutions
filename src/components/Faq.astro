@@ -1,0 +1,33 @@
+---
+// Accessible FAQ using native <details>. Answers are always in the HTML (crawlable, quotable).
+import SectionHeader from "./SectionHeader.astro";
+interface Props { items: { q: string; a: string }[]; title?: string; eyebrow?: string; lead?: string }
+const { items, title = "Frequently asked questions", eyebrow = "FAQ", lead } = Astro.props;
+---
+<section class="section section--border" aria-labelledby="faq-title">
+  <div class="container faq-wrap">
+    <SectionHeader eyebrow={eyebrow} title={`<span id="faq-title">${title}</span>`} lead={lead} />
+    <div class="faq-list" data-reveal>
+      {items.map((f, i) => (
+        <details class="faq-item" open={i === 0}>
+          <summary><h3 class="faq-q">{f.q}</h3><span class="faq-icon" aria-hidden="true"></span></summary>
+          <p class="faq-a">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .faq-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-8); align-items: start; }
+  .faq-list { border-top: 1px solid var(--border); }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 22px 0; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  .faq-q { font-size: 1.0625rem; font-weight: 560; letter-spacing: -0.01em; line-height: 1.4; }
+  .faq-icon { position: relative; flex: none; width: 14px; height: 14px; }
+  .faq-icon::before, .faq-icon::after { content: ""; position: absolute; inset: 6px 0 auto; height: 1.6px; background: var(--text-2); transition: transform .3s var(--ease); }
+  .faq-icon::after { transform: rotate(90deg); }
+  details[open] .faq-icon::after { transform: rotate(0); }
+  .faq-a { padding-bottom: 22px; color: var(--text-2); max-width: 68ch; }
+  @media (max-width: 860px) { .faq-wrap { grid-template-columns: 1fr; gap: var(--space-5); } }
+</style>

@@ -1,0 +1,100 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import CommandPalette from "../components/CommandPalette.astro";
+import { company } from "../data/site";
+import { abs, ldJson, organizationSchema, websiteSchema } from "../lib/seo";
+
+interface Props {
+  /** <title>. Brand is appended automatically unless `rawTitle` is set. */
+  title: string;
+  description: string;
+  rawTitle?: boolean;
+  image?: string;
+  imageAlt?: string;
+  type?: "website" | "article";
+  noindex?: boolean;
+  /** Extra JSON-LD nodes for this page (Organization + WebSite are always included). */
+  schema?: object[];
+  publishedTime?: string;
+  modifiedTime?: string;
+}
+
+const {
+  title,
+  description,
+  rawTitle = false,
+  image = "/og.png",
+  imageAlt = `${company.name}: AI agents, FinTech platforms and SaaS engineering`,
+  type = "website",
+  noindex = false,
+  schema = [],
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+const fullTitle = rawTitle ? title : `${title} | ${company.name}`;
+const canonical = new URL(Astro.url.pathname, company.url).href;
+const ogImage = abs(image);
+const graph = ldJson([organizationSchema(), websiteSchema(), ...schema]);
+---
+<!doctype html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en-US" href={canonical} />
+    <link rel="alternate" hreflang="x-default" href={canonical} />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
+    <meta name="theme-color" content="#08090a" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="generator" content={Astro.generator} />
+
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${company.name} Engineering Blog`} href="/rss.xml" />
+
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={company.name} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+
+    <script type="application/ld+json" set:html={graph} />
+    <script is:inline>document.documentElement.classList.add("js");</script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="page-bg" aria-hidden="true"></div>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <CommandPalette />
+    <script>
+      import "../scripts/site";
+    </script>
+  </body>
+</html>

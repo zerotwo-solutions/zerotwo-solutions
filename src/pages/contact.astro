@@ -1,0 +1,785 @@
+---
+import Base from "../layouts/Base.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import Icon from "../components/Icon.astro";
+import { company, services } from "../data/site";
+import { abs, breadcrumbSchema, ORG_ID, WEBSITE_ID } from "../lib/seo";
+
+/**
+ * Form delivery. Set PUBLIC_FORM_ENDPOINT (e.g. a Formspree or Web3Forms URL) to POST submissions there.
+ * When it is empty the form falls back to opening a pre-filled email to company.email.
+ */
+const FORM_ENDPOINT: string = String(import.meta.env.PUBLIC_FORM_ENDPOINT ?? "").trim();
+
+const title = "Contact Us: Get a Free Technical Roadmap";
+const description = `Tell us what you want to build. We reply within ${company.responseTime} and send a technical roadmap and fixed-scope proposal within ${company.roadmapTime} of the first call.`;
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Contact", path: "/contact/" },
+];
+
+const projectTypes = [...services.map((s) => ({ value: s.title, slug: s.slug })), { value: "Other", slug: "other" }];
+const budgets = ["Under $25k", "$25k–$75k", "$75k–$150k", "$150k+", "Not sure yet"];
+const timelines = ["As soon as possible", "Within 1 month", "1–3 months", "3–6 months", "Flexible / not sure yet"];
+
+const nextSteps = [
+  {
+    title: `We reply within ${company.responseTime}`,
+    body: "A senior engineer reads your message and replies with questions or times for a call. No sales scripts.",
+  },
+  {
+    title: "30-minute discovery call",
+    body: "We dig into the business goal, constraints and what success looks like. NDA available before we talk details.",
+  },
+  {
+    title: `Your roadmap within ${company.roadmapTime}`,
+    body: "Architecture, milestones, risks and a fixed-scope proposal with a price. No obligation to continue.",
+  },
+];
+
+const assurances = ["Mutual NDA on request", "You own 100% of the IP", "No obligation, no lock-in"];
+
+const schema = [
+  {
+    "@type": "ContactPage",
+    "@id": `${abs("/contact/")}#webpage`,
+    url: abs("/contact/"),
+    name: `Contact ${company.name}`,
+    description,
+    inLanguage: "en-US",
+    isPartOf: { "@id": WEBSITE_ID },
+    about: { "@id": ORG_ID },
+    mainEntity: { "@id": ORG_ID },
+  },
+  breadcrumbSchema(crumbs),
+];
+---
+<Base title={title} description={description} schema={schema}>
+  <section class="section contact" aria-labelledby="contact-title">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container">
+      <header class="contact-head">
+        <Breadcrumbs items={crumbs} />
+        <span class="eyebrow">Contact</span>
+        <h1 id="contact-title" class="h1">Tell us what you want to build</h1>
+        <p class="lead">
+          Share a few details and a senior engineer will reply within {company.responseTime}. You get a technical roadmap
+          and fixed-scope proposal within {company.roadmapTime} of our first call.
+        </p>
+      </header>
+
+      <div class="contact-grid">
+        <div class="form-col">
+          <form
+            class="form card"
+            data-contact-form
+            data-endpoint={FORM_ENDPOINT}
+            data-email={company.email}
+            action={FORM_ENDPOINT || `mailto:${company.email}`}
+            method="post"
+            enctype={FORM_ENDPOINT ? undefined : "text/plain"}
+            aria-labelledby="form-title"
+          >
+            <h2 id="form-title" class="sr-only">Project inquiry form</h2>
+
+            <div class="plan" data-plan role="group" aria-labelledby="plan-label" hidden>
+              <div class="plan-head">
+                <span class="eyebrow" id="plan-label">Your plan</span>
+                <button type="button" class="plan-clear" data-plan-clear>Remove</button>
+              </div>
+              <p class="plan-text" data-plan-text></p>
+              <p class="plan-note subtle">From the project estimator. It is sent with your message.</p>
+            </div>
+            <input type="hidden" name="plan" value="" data-plan-input />
+            <input type="hidden" name="_subject" value="New project inquiry" data-subject />
+
+            <div class="hp" aria-hidden="true">
+              <label for="f-hp">Leave this field empty</label>
+              <input id="f-hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="f-name">Full name</label>
+                <input class="control" id="f-name" name="name" type="text" autocomplete="name" required maxlength="120" aria-describedby="f-name-error" />
+                <p class="field-error" id="f-name-error"></p>
+              </div>
+              <div class="field">
+                <label for="f-email">Work email</label>
+                <input class="control" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" required maxlength="254" aria-describedby="f-email-error" />
+                <p class="field-error" id="f-email-error"></p>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="f-company">Company</label>
+                <input class="control" id="f-company" name="company" type="text" autocomplete="organization" required maxlength="160" aria-describedby="f-company-error" />
+                <p class="field-error" id="f-company-error"></p>
+              </div>
+              <div class="field">
+                <label for="f-website">Website <span class="optional">(optional)</span></label>
+                <input class="control" id="f-website" name="website" type="text" inputmode="url" autocomplete="url" spellcheck="false" maxlength="200" placeholder="acme.com" aria-describedby="f-website-error" />
+                <p class="field-error" id="f-website-error"></p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="f-type">Project type</label>
+              <select class="control" id="f-type" name="projectType" required aria-describedby="f-type-error">
+                <option value="" selected disabled>Select the closest match</option>
+                {projectTypes.map((t) => <option value={t.value} data-slug={t.slug}>{t.value}</option>)}
+              </select>
+              <p class="field-error" id="f-type-error"></p>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="f-budget">Budget range</label>
+                <select class="control" id="f-budget" name="budget" required aria-describedby="f-budget-error">
+                  <option value="" selected disabled>Select a range</option>
+                  {budgets.map((b) => <option value={b}>{b}</option>)}
+                </select>
+                <p class="field-error" id="f-budget-error"></p>
+              </div>
+              <div class="field">
+                <label for="f-timeline">Timeline</label>
+                <select class="control" id="f-timeline" name="timeline" required aria-describedby="f-timeline-error">
+                  <option value="" selected disabled>Select a timeline</option>
+                  {timelines.map((t) => <option value={t}>{t}</option>)}
+                </select>
+                <p class="field-error" id="f-timeline-error"></p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="f-message">What do you want to build?</label>
+              <p class="hint subtle" id="f-message-hint">The problem, who it is for and any deadline. A few sentences is plenty.</p>
+              <textarea class="control" id="f-message" name="message" rows="6" required minlength="20" maxlength="5000" aria-describedby="f-message-hint f-message-error"></textarea>
+              <p class="field-error" id="f-message-error"></p>
+            </div>
+
+            <div class="form-foot">
+              <button type="submit" class="btn btn--primary btn--lg submit" data-submit>
+                <span class="spinner" aria-hidden="true"></span>
+                <span data-submit-label>Send project details</span>
+                <Icon name="arrow" size={16} class="arrow" />
+              </button>
+              <p class="fine subtle">
+                We use your details only to reply. See our <a href="/privacy/">privacy policy</a>.
+              </p>
+            </div>
+
+            <div class="status" role="status" aria-live="polite" data-status></div>
+          </form>
+
+          <section class="success card" data-success hidden tabindex="-1" aria-labelledby="success-title">
+            <span class="success-icon" aria-hidden="true"><Icon name="check" size={22} /></span>
+            <h2 id="success-title" class="h3">Thanks, your message is in.</h2>
+            <p class="muted">
+              We will reply to <strong data-success-email>your inbox</strong> within {company.responseTime}. While you wait,
+              see how we have shipped similar work.
+            </p>
+            <div class="success-actions">
+              <a class="btn" href="/work/">Browse case studies <Icon name="arrow" size={16} class="arrow" /></a>
+              <a class="btn" href="/process/">How we work</a>
+            </div>
+          </section>
+        </div>
+
+        <aside class="side" aria-labelledby="next-title">
+          <div class="card side-card">
+            <h2 id="next-title" class="h3">What happens next</h2>
+            <ol class="next" role="list">
+              {nextSteps.map((s, i) => (
+                <li>
+                  <span class="next-num" aria-hidden="true">{i + 1}</span>
+                  <div>
+                    <h3 class="next-title">{s.title}</h3>
+                    <p class="muted">{s.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div class="card side-card">
+            <h2 class="h3">Prefer email?</h2>
+            <a class="email" href={`mailto:${company.email}`}><Icon name="mail" size={18} /> {company.email}</a>
+            <ul class="assure" role="list">
+              {assurances.map((a) => (
+                <li><Icon name="check" size={16} /> {a}</li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .contact {
+    overflow: hidden;
+    padding-block: calc(var(--section-y) * 0.7) var(--section-y);
+  }
+  .contact-head {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    margin-bottom: var(--space-8);
+  }
+  .contact-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  /* ---------- Form ---------- */
+  .form {
+    display: grid;
+    gap: var(--space-5);
+    background: linear-gradient(180deg, #101116, #0b0c0f);
+  }
+  .form[hidden] {
+    display: none;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .field {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+  label {
+    font-size: var(--fs-sm);
+    font-weight: 560;
+    color: var(--text);
+  }
+  .optional {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+  .hint {
+    margin-top: calc(var(--space-1) * -1);
+    font-size: var(--fs-xs);
+  }
+  .control {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-2);
+    background: var(--bg-2);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.4;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .control::placeholder {
+    color: var(--text-3);
+  }
+  .control:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+  .control:focus-visible {
+    outline: 2px solid transparent;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139, 124, 255, 0.3);
+    background: var(--bg-3);
+  }
+  .control[aria-invalid="true"] {
+    border-color: var(--down);
+  }
+  .control[aria-invalid="true"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.25);
+  }
+  textarea.control {
+    min-height: 150px;
+    resize: vertical;
+  }
+  select.control {
+    appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8f98' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+  }
+  select.control:invalid {
+    color: var(--text-3);
+  }
+  select.control option {
+    background: var(--bg-3);
+    color: var(--text);
+  }
+  .field-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-xs);
+    color: #ff8f8f;
+  }
+  .field-error:empty {
+    display: none;
+  }
+
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .plan {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius);
+    border: 1px solid rgba(139, 124, 255, 0.35);
+    background: rgba(139, 124, 255, 0.07);
+  }
+  .plan[hidden] {
+    display: none;
+  }
+  .plan-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .plan-text {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font-size: var(--fs-sm);
+  }
+  .plan-note {
+    font-size: var(--fs-xs);
+  }
+  .plan-clear {
+    font-size: var(--fs-xs);
+    color: var(--text-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .plan-clear:hover {
+    color: var(--text);
+  }
+
+  .form-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-5);
+    padding-top: var(--space-2);
+  }
+  .fine {
+    font-size: var(--fs-xs);
+    max-width: 34ch;
+  }
+  .fine a {
+    color: var(--text-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .fine a:hover {
+    color: var(--text);
+  }
+
+  .submit[disabled] {
+    cursor: progress;
+    opacity: 0.85;
+  }
+  .spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 2px solid rgba(8, 9, 10, 0.25);
+    border-top-color: #08090a;
+    animation: spin 0.7s linear infinite;
+  }
+  .submit.is-loading .spinner {
+    display: inline-block;
+  }
+  .submit.is-loading :global(.arrow) {
+    display: none;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .status {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .status:empty {
+    display: none;
+  }
+  .status[data-tone="error"] {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 107, 107, 0.35);
+    background: rgba(255, 107, 107, 0.08);
+    color: #ffc2c2;
+  }
+  .status[data-tone="info"] {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(61, 220, 151, 0.3);
+    background: rgba(61, 220, 151, 0.07);
+    color: var(--text);
+  }
+  .status a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .success {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+  .success[hidden] {
+    display: none;
+  }
+  .success:focus {
+    outline: none;
+  }
+  .success strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .success-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: rgba(61, 220, 151, 0.12);
+    color: var(--up);
+  }
+  .success-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  /* ---------- Side column ---------- */
+  .side {
+    display: grid;
+    gap: var(--space-5);
+    position: sticky;
+    top: calc(var(--nav-h) + var(--space-5));
+  }
+  .side-card {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .next {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .next li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+  .next li > div {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .next-num {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid rgba(139, 124, 255, 0.45);
+    background: rgba(139, 124, 255, 0.1);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: #c9c1ff;
+  }
+  .next-title {
+    font-size: var(--fs-body);
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+  }
+  .next .muted {
+    font-size: var(--fs-sm);
+  }
+  .email {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 560;
+    overflow-wrap: anywhere;
+  }
+  .email:hover {
+    color: var(--accent);
+  }
+  .assure {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .assure li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .assure :global(svg) {
+    flex: none;
+    color: var(--up);
+  }
+
+  @media (max-width: 960px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+    .side {
+      position: static;
+    }
+  }
+  @media (max-width: 600px) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+    .form {
+      padding: var(--space-5);
+    }
+    .submit {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  type FieldEl = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+
+  if (form) {
+    const endpoint = (form.dataset.endpoint ?? "").trim();
+    const email = form.dataset.email ?? "";
+    const statusEl = form.querySelector<HTMLElement>("[data-status]");
+    const submitBtn = form.querySelector<HTMLButtonElement>("[data-submit]");
+    const submitLabel = form.querySelector<HTMLElement>("[data-submit-label]");
+    const successEl = document.querySelector<HTMLElement>("[data-success]");
+    const defaultLabel = submitLabel?.textContent ?? "Send project details";
+
+    // JS takes over validation so errors are inline and friendly.
+    form.noValidate = true;
+
+    const field = (name: string) => form.elements.namedItem(name) as FieldEl | null;
+    const value = (name: string) => (field(name)?.value ?? "").trim();
+
+    // ---------- Prefill from the URL: ?plan=... (estimator) and ?service=<slug> ----------
+    const params = new URLSearchParams(window.location.search);
+    const plan = (params.get("plan") ?? "").trim().slice(0, 1500);
+    const planBox = form.querySelector<HTMLElement>("[data-plan]");
+    const planText = form.querySelector<HTMLElement>("[data-plan-text]");
+    const planInput = form.querySelector<HTMLInputElement>("[data-plan-input]");
+    if (plan && planBox && planText && planInput) {
+      planText.textContent = plan;
+      planInput.value = plan;
+      planBox.hidden = false;
+      form.querySelector<HTMLButtonElement>("[data-plan-clear]")?.addEventListener("click", () => {
+        planInput.value = "";
+        planBox.hidden = true;
+        field("name")?.focus();
+      });
+    }
+    // ?q=... comes from the home page agent console's free-text question.
+    const question = (params.get("q") ?? "").trim().slice(0, 1000);
+    const message = field("message");
+    if (question && message && !message.value) message.value = question;
+    const service = params.get("service");
+    const typeSelect = field("projectType");
+    if (service && typeSelect instanceof HTMLSelectElement) {
+      const match = Array.from(typeSelect.options).find((o) => o.dataset.slug === service);
+      if (match) typeSelect.value = match.value;
+    }
+
+    // ---------- Validation ----------
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const urlRe = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(\/\S*)?$/i;
+
+    const rules: Record<string, (v: string) => string> = {
+      name: (v) => (v ? "" : "Please enter your name."),
+      email: (v) =>
+        !v ? "Please enter your work email." : emailRe.test(v) ? "" : "That email does not look right. Check for a missing @ or domain.",
+      company: (v) => (v ? "" : "Please enter your company name. If you are independent, “Independent” is fine."),
+      website: (v) => (!v || urlRe.test(v) ? "" : "Enter a website like acme.com, or leave this blank."),
+      projectType: (v) => (v ? "" : "Choose the option closest to your project. “Other” is fine."),
+      budget: (v) => (v ? "" : "Choose a budget range. “Not sure yet” is fine."),
+      timeline: (v) => (v ? "" : "Choose a timeline. “Flexible” is fine."),
+      message: (v) =>
+        !v
+          ? "Tell us a little about what you want to build."
+          : v.length < 20
+            ? "Add a bit more detail (at least 20 characters) so we can reply usefully."
+            : "",
+    };
+
+    const setError = (name: string, msg: string) => {
+      const el = field(name);
+      if (!el) return;
+      const err = document.getElementById(`${el.id}-error`);
+      if (err) err.textContent = msg;
+      if (msg) el.setAttribute("aria-invalid", "true");
+      else el.removeAttribute("aria-invalid");
+    };
+
+    const validate = (name: string) => {
+      const rule = rules[name];
+      if (!rule) return true;
+      const msg = rule(value(name));
+      setError(name, msg);
+      return !msg;
+    };
+
+    const dirty = new Set<string>();
+    for (const name of Object.keys(rules)) {
+      const el = field(name);
+      if (!el) continue;
+      el.addEventListener("input", () => {
+        dirty.add(name);
+        if (el.getAttribute("aria-invalid") === "true") validate(name);
+      });
+      el.addEventListener("change", () => {
+        dirty.add(name);
+        if (el instanceof HTMLSelectElement || el.getAttribute("aria-invalid") === "true") validate(name);
+      });
+      el.addEventListener("blur", () => {
+        if (dirty.has(name)) validate(name);
+      });
+    }
+
+    // ---------- Status + loading ----------
+    const setStatus = (html: string, tone: "error" | "info" | "" = "") => {
+      if (!statusEl) return;
+      statusEl.dataset.tone = tone;
+      statusEl.innerHTML = html;
+    };
+    const setLoading = (on: boolean) => {
+      if (!submitBtn) return;
+      submitBtn.disabled = on;
+      submitBtn.classList.toggle("is-loading", on);
+      submitBtn.setAttribute("aria-busy", String(on));
+      if (submitLabel) submitLabel.textContent = on ? "Sending…" : defaultLabel;
+    };
+    const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => entities[c] ?? c);
+    const emailLink = `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`;
+
+    const subjectLine = () => {
+      const type = value("projectType") || "New project";
+      const company = value("company");
+      return `Project inquiry: ${type}${company ? ` (${company})` : ""}`;
+    };
+
+    const showSuccess = () => {
+      const sentTo = successEl?.querySelector<HTMLElement>("[data-success-email]");
+      if (sentTo && value("email")) sentTo.textContent = value("email");
+      form.hidden = true;
+      if (successEl) {
+        successEl.hidden = false;
+        successEl.focus();
+      }
+    };
+
+    const openMailto = () => {
+      const planValue = planInput?.value ?? "";
+      const lines = [
+        `Name: ${value("name")}`,
+        `Email: ${value("email")}`,
+        `Company: ${value("company")}`,
+        ...(value("website") ? [`Website: ${value("website")}`] : []),
+        `Project type: ${value("projectType")}`,
+        `Budget: ${value("budget")}`,
+        `Timeline: ${value("timeline")}`,
+        ...(planValue ? ["", "Plan from estimator:", planValue] : []),
+        "",
+        "Message:",
+        value("message"),
+      ];
+      let body = lines.join("\n");
+      // Keep the mailto URL within limits some mail clients enforce.
+      if (body.length > 1800) body = `${body.slice(0, 1800)}\n\n[Message shortened. Full details to follow.]`;
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subjectLine())}&body=${encodeURIComponent(body)}`;
+      setStatus(
+        `Your email app should open with your message ready to send. Nothing opened? Email us at ${emailLink}.`,
+        "info"
+      );
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setStatus("");
+
+      const invalid = Object.keys(rules).filter((name) => !validate(name));
+      if (invalid.length) {
+        setStatus(
+          invalid.length === 1 ? "Please fix the highlighted field." : `Please fix the ${invalid.length} highlighted fields.`,
+          "error"
+        );
+        field(invalid[0])?.focus();
+        return;
+      }
+
+      // Honeypot filled: almost certainly a bot. Pretend success, send nothing.
+      const hp = field("_gotcha");
+      if (hp && hp.value) {
+        showSuccess();
+        return;
+      }
+
+      const subject = form.querySelector<HTMLInputElement>("[data-subject]");
+      if (subject) subject.value = subjectLine();
+
+      if (!endpoint) {
+        openMailto();
+        return;
+      }
+
+      setLoading(true);
+      const ctrl = new AbortController();
+      const timer = window.setTimeout(() => ctrl.abort(), 15000);
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+          signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showSuccess();
+      } catch {
+        setStatus(
+          `Something went wrong and your message was not sent. Please try again, or email us at ${emailLink}.`,
+          "error"
+        );
+      } finally {
+        window.clearTimeout(timer);
+        setLoading(false);
+      }
+    });
+  }
+</script>

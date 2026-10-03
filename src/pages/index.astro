@@ -1,0 +1,111 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/home/Hero.astro";
+import StackMarquee from "../components/home/StackMarquee.astro";
+import AgentConsole from "../components/home/AgentConsole.astro";
+import LiveMarket from "../components/home/LiveMarket.astro";
+import Estimator from "../components/home/Estimator.astro";
+import WhyUs from "../components/home/WhyUs.astro";
+import UsTeams from "../components/home/UsTeams.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import ServiceCard from "../components/ServiceCard.astro";
+import CaseCard from "../components/CaseCard.astro";
+import Faq from "../components/Faq.astro";
+import CtaBand from "../components/CtaBand.astro";
+import Icon from "../components/Icon.astro";
+import { company, services, caseStudies, process, homeFaq } from "../data/site";
+import { abs, faqSchema, ORG_ID, WEBSITE_ID } from "../lib/seo";
+
+const schema = [
+  {
+    "@type": "WebPage",
+    "@id": `${company.url}/#webpage`,
+    url: `${company.url}/`,
+    name: "AI Agent & FinTech Software Development Company",
+    isPartOf: { "@id": WEBSITE_ID },
+    about: { "@id": ORG_ID },
+    inLanguage: "en-US",
+  },
+  {
+    "@type": "ItemList",
+    name: "Services",
+    itemListElement: services.map((s, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: abs(`/services/${s.slug}/`),
+      name: s.title,
+    })),
+  },
+  faqSchema(homeFaq),
+];
+---
+<Base
+  title="AI Agent & FinTech Software Development Company | ZeroTwo"
+  rawTitle
+  description="We build production AI agents on Claude and AWS Bedrock, MCP servers, real-time FinTech platforms and SaaS on AWS for US startups. Roadmap in 48 hours."
+  schema={schema}
+>
+  <Hero />
+  <StackMarquee />
+
+  <section class="section" id="services" aria-labelledby="services-title">
+    <div class="container">
+      <SectionHeader eyebrow="What we build" title={`<span id="services-title">Five specialties.<br/><span class="dim-text">One senior team that ships them.</span></span>`} lead="We go deep instead of wide: AI agents, MCP servers, real-time market data, voice AI and the SaaS infrastructure underneath them." />
+      <div class="grid grid-3 services-grid">
+        {services.map((s, i) => <ServiceCard service={s} index={i} />)}
+      </div>
+      <a class="link-arrow more" href="/services/">All services <Icon name="arrow" size={16} /></a>
+    </div>
+  </section>
+
+  <AgentConsole />
+
+  <section class="section section--border" id="work" aria-labelledby="work-title">
+    <div class="container">
+      <SectionHeader eyebrow="Selected work" title={`<span id="work-title">Systems running in production,<br/><span class="dim-text">not slideware.</span></span>`} lead="Four connected products we engineered for an options analytics company: a web platform, a market data pipeline, a desktop AI app and a voice assistant. Client names are withheld under NDA." />
+      <div class="grid grid-2">
+        {caseStudies.map((c, i) => <CaseCard study={c} featured={i === 0} />)}
+      </div>
+      <a class="link-arrow more" href="/work/">All case studies <Icon name="arrow" size={16} /></a>
+    </div>
+  </section>
+
+  <LiveMarket />
+  <WhyUs />
+
+  <section class="section section--border" id="process" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHeader eyebrow="How we work" title={`<span id="process-title">From first call to production,<br/><span class="dim-text">with no surprises.</span></span>`} />
+      <ol class="steps" role="list">
+        {process.map((p, i) => (
+          <li class="step" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+            <span class="step-n mono">{p.step}</span>
+            <h3 class="h3">{p.title}</h3>
+            <span class="step-time mono">{p.time}</span>
+            <p class="muted">{p.body}</p>
+          </li>
+        ))}
+      </ol>
+      <a class="link-arrow more" href="/process/">Our full process <Icon name="arrow" size={16} /></a>
+    </div>
+  </section>
+
+  <UsTeams />
+  <Estimator />
+  <Faq items={homeFaq} lead={`Still have questions? Email ${company.email} and a senior engineer will reply within ${company.responseTime}.`} />
+  <CtaBand />
+</Base>
+
+<style>
+  .more { margin-top: var(--space-6); }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface); }
+  .step { position: relative; display: grid; gap: 10px; align-content: start; padding: 28px 24px; }
+  .step + .step { border-left: 1px solid var(--border); }
+  .step-n { font-size: var(--fs-xs); color: var(--accent); }
+  .step-time { justify-self: start; font-size: 12px; color: var(--accent-2); padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(79, 209, 197, 0.3); }
+  .step .muted { font-size: var(--fs-sm); }
+  @media (max-width: 1024px) {
+    .steps { grid-template-columns: 1fr; }
+    .step + .step { border-left: 0; border-top: 1px solid var(--border); }
+  }
+</style>

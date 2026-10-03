@@ -1,0 +1,62 @@
+---
+import { company, services, nav } from "../data/site";
+import Logo from "./Logo.astro";
+import Icon from "./Icon.astro";
+const year = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="brand" aria-label={`${company.name} home`}><Logo /><span>{company.name}</span></a>
+        <p class="subtle">{company.tagline} AI agents, MCP servers, FinTech platforms and SaaS, engineered to scale from day one.</p>
+        <a class="link-arrow" href={`mailto:${company.email}`}><Icon name="mail" size={16} /> {company.email}</a>
+      </div>
+      <nav class="footer-cols" aria-label="Footer">
+        <div>
+          <h2 class="footer-h">Services</h2>
+          <ul role="list">{services.map((s) => <li><a href={`/services/${s.slug}/`}>{s.title}</a></li>)}</ul>
+        </div>
+        <div>
+          <h2 class="footer-h">Company</h2>
+          <ul role="list">
+            {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+            <li><a href="/contact/">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="footer-h">Resources</h2>
+          <ul role="list">
+            <li><a href="/work/">Case studies</a></li>
+            <li><a href="/blogs/">Engineering blog</a></li>
+            <li><a href="/rss.xml">RSS feed</a></li>
+            <li><a href={company.github} rel="noopener" target="_blank">GitHub</a></li>
+            <li><a href="/privacy/">Privacy policy</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© {year} {company.legalName}. All rights reserved.</p>
+      <p class="status"><span class="dot" aria-hidden="true"></span> Accepting new projects</p>
+    </div>
+  </div>
+  <div class="footer-word" aria-hidden="true">ZEROTWO</div>
+</footer>
+<style>
+  .footer { position: relative; overflow: hidden; border-top: 1px solid var(--border); padding-top: var(--space-9); background: linear-gradient(180deg, transparent, rgba(139,124,255,.03)); }
+  .footer-top { display: grid; grid-template-columns: 1.1fr 2fr; gap: var(--space-8); }
+  .footer-brand { display: grid; gap: var(--space-4); align-content: start; max-width: 360px; font-size: var(--fs-sm); }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 640; letter-spacing: -0.02em; }
+  .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+  .footer-h { font-size: var(--fs-xs); font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); font-weight: 500; margin-bottom: var(--space-4); }
+  .footer-cols ul { display: grid; gap: 10px; font-size: var(--fs-sm); color: var(--text-2); }
+  .footer-cols a:hover { color: var(--text); }
+  .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: var(--space-8); padding-block: var(--space-5); border-top: 1px solid var(--border); font-size: var(--fs-xs); color: var(--text-3); }
+  .status { display: inline-flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--up); box-shadow: 0 0 0 0 rgba(61,220,151,.6); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 8px rgba(61,220,151,0); } 100% { box-shadow: 0 0 0 0 rgba(61,220,151,0); } }
+  .footer-word { font-size: clamp(5rem, 22vw, 20rem); font-weight: 800; letter-spacing: -0.06em; line-height: .8; text-align: center; margin-top: var(--space-6); background: linear-gradient(180deg, rgba(255,255,255,.07), transparent 80%); -webkit-background-clip: text; background-clip: text; color: transparent; user-select: none; }
+  @media (max-width: 860px) { .footer-top { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .footer-cols { grid-template-columns: 1fr 1fr; } }
+</style>

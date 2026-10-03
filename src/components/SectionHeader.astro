@@ -1,0 +1,10 @@
+---
+interface Props { eyebrow?: string; title: string; lead?: string; center?: boolean; as?: "h1" | "h2"; size?: "h1" | "h2" }
+const { eyebrow, title, lead, center = false, as: Tag = "h2", size = "h2" } = Astro.props;
+---
+<header class:list={["section-head", { "section-head--center": center }]} data-reveal>
+  {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+  <Tag class={size} set:html={title} />
+  {lead && <p class="lead">{lead}</p>}
+  <slot />
+</header>

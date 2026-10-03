@@ -1,0 +1,285 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import Icon from "../../components/Icon.astro";
+import { company } from "../../data/site";
+import { abs, breadcrumbSchema, ORG_ID, WEBSITE_ID } from "../../lib/seo";
+
+const WORDS_PER_MINUTE = 230;
+const readingMinutes = (body: string | undefined, override?: number) =>
+  override ?? Math.max(1, Math.round((body ?? "").split(/\s+/).filter(Boolean).length / WORDS_PER_MINUTE));
+
+const dateFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+
+const posts = (await getCollection("blogs", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map((p) => ({ ...p, minutes: readingMinutes(p.body, p.data.readingTime), url: `/blogs/${p.id}/` }));
+
+const [featured, ...rest] = posts;
+const featuredHeadings = featured
+  ? (await render(featured)).headings.filter((h) => h.depth === 2 && h.slug !== "key-takeaways").slice(0, 4)
+  : [];
+
+const title = "Engineering Blog: AI Agents, MCP & FinTech";
+const description =
+  "Field notes from production: how we build AI agents on Claude and AWS Bedrock, MCP servers, real-time market data pipelines and voice AI assistants.";
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Blog", path: "/blogs/" },
+];
+
+const blogUrl = abs("/blogs/");
+const schema = [
+  {
+    "@type": "Blog",
+    "@id": `${blogUrl}#blog`,
+    url: blogUrl,
+    name: `${company.name} Engineering Blog`,
+    description,
+    inLanguage: "en-US",
+    isPartOf: { "@id": WEBSITE_ID },
+    publisher: { "@id": ORG_ID },
+    blogPost: posts.map((p) => ({
+      "@type": "BlogPosting",
+      "@id": `${abs(p.url)}#article`,
+      url: abs(p.url),
+      headline: p.data.title,
+      description: p.data.description,
+      datePublished: p.data.pubDate.toISOString(),
+      dateModified: (p.data.updatedDate ?? p.data.pubDate).toISOString(),
+      author: { "@type": "Organization", "@id": ORG_ID, name: company.name },
+      publisher: { "@id": ORG_ID },
+      keywords: p.data.tags.join(", "),
+    })),
+  },
+  breadcrumbSchema(crumbs),
+];
+---
+<Base title={title} description={description} schema={schema}>
+  <section class="section page-hero" aria-labelledby="blog-title">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Blog</span>
+      <h1 id="blog-title" class="h1">Engineering blog</h1>
+      <p class="lead">
+        Field notes from software we run in production: AI agents on Claude and AWS Bedrock, MCP servers, real-time market
+        data pipelines and voice AI. Concrete architecture, real trade-offs, no hype.
+      </p>
+      <a class="link-arrow" href="/rss.xml">Subscribe via RSS <Icon name="arrow" size={16} /></a>
+    </div>
+  </section>
+
+  {
+    featured && (
+      <section class="section section--tight" aria-labelledby="latest-title">
+        <div class="container">
+          <h2 id="latest-title" class="sr-only">Latest article</h2>
+          <article class="card spotlight featured" data-reveal>
+            <div class="featured-main">
+              <span class="eyebrow">Latest</span>
+              <p class="meta">
+                <time datetime={isoDate(featured.data.pubDate)}>{dateFmt.format(featured.data.pubDate)}</time>
+                <span aria-hidden="true">·</span>
+                <span>{featured.minutes} min read</span>
+              </p>
+              <h3 class="featured-title">
+                <a class="stretched" href={featured.url}>{featured.data.title}</a>
+              </h3>
+              <p class="muted featured-desc">{featured.data.description}</p>
+              <ul class="tag-list" role="list" aria-label="Topics">
+                {featured.data.tags.map((t) => <li class="tag">{t}</li>)}
+              </ul>
+              <span class="link-arrow read" aria-hidden="true">Read article <Icon name="arrow" size={16} /></span>
+            </div>
+            {featuredHeadings.length > 0 && (
+              <div class="featured-side">
+                <p class="side-label">Inside this article</p>
+                <ol class="inside" role="list">
+                  {featuredHeadings.map((h, i) => (
+                    <li>
+                      <span class="inside-num">{String(i + 1).padStart(2, "0")}</span>
+                      <span>{h.text}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </article>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    rest.length > 0 && (
+      <section class="section section--tight" aria-labelledby="all-title">
+        <div class="container">
+          <h2 id="all-title" class="h3 list-title">More articles</h2>
+          <ul class="grid grid-3" role="list">
+            {rest.map((p, i) => (
+              <li class="card card--hover spotlight post-card" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+                <p class="meta">
+                  <time datetime={isoDate(p.data.pubDate)}>{dateFmt.format(p.data.pubDate)}</time>
+                  <span aria-hidden="true">·</span>
+                  <span>{p.minutes} min read</span>
+                </p>
+                <h3 class="h3">
+                  <a class="stretched" href={p.url}>{p.data.title}</a>
+                </h3>
+                <p class="muted post-desc">{p.data.description}</p>
+                <ul class="tag-list" role="list" aria-label="Topics">
+                  {p.data.tags.slice(0, 3).map((t) => <li class="tag">{t}</li>)}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <CtaBand
+    title="Building something like this?"
+    lead={`Tell us about the AI or real-time system you want to ship. You will get a technical roadmap and a fixed-scope proposal within ${company.roadmapTime}.`}
+  />
+</Base>
+
+<style>
+  .page-hero {
+    overflow: hidden;
+    padding-block: calc(var(--section-y) * 0.7) calc(var(--section-y) * 0.3);
+  }
+  .hero-inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  /* Whole card is clickable; the real link stays on the title for a11y. */
+  .stretched::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .stretched:focus-visible {
+    outline: none;
+  }
+  .card:has(.stretched:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* Featured */
+  .featured {
+    display: grid;
+    gap: var(--space-7);
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    padding: clamp(24px, 4vw, 48px);
+    transition: border-color 0.25s;
+  }
+  .featured:hover {
+    border-color: var(--border-2);
+  }
+  .featured-main {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    justify-items: start;
+  }
+  .featured-title {
+    font-size: var(--fs-h2);
+    max-width: 22ch;
+  }
+  .featured-title a:hover,
+  .post-card .h3 a:hover {
+    color: var(--text);
+  }
+  .featured-desc {
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+    max-width: 60ch;
+  }
+  .read {
+    margin-top: var(--space-2);
+  }
+  .featured:hover .read {
+    color: var(--accent);
+  }
+  .featured-side {
+    align-self: stretch;
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding-left: var(--space-6);
+    border-left: 1px solid var(--border);
+  }
+  .side-label {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .inside {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .inside li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--text-2);
+  }
+  .inside-num {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+    padding-top: 2px;
+  }
+
+  /* Grid */
+  .list-title {
+    margin-bottom: var(--space-6);
+  }
+  .post-card {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    grid-template-rows: auto auto 1fr auto;
+  }
+  .post-desc {
+    font-size: var(--fs-sm);
+  }
+
+  @media (max-width: 900px) {
+    .featured {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .featured-side {
+      padding-left: 0;
+      padding-top: var(--space-5);
+      border-left: 0;
+      border-top: 1px solid var(--border);
+    }
+  }
+</style>

@@ -1,0 +1,518 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import Icon from "../../components/Icon.astro";
+import { company, services, serviceBySlug, caseBySlug } from "../../data/site";
+import { abs, breadcrumbSchema, ORG_ID, WEBSITE_ID } from "../../lib/seo";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("blogs", ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  post: CollectionEntry<"blogs">;
+}
+
+const { post } = Astro.props;
+const { data } = post;
+const { Content, headings } = await render(post);
+
+const WORDS_PER_MINUTE = 230;
+const readingMinutes = (body: string | undefined, override?: number) =>
+  override ?? Math.max(1, Math.round((body ?? "").split(/\s+/).filter(Boolean).length / WORDS_PER_MINUTE));
+
+const wordCount = (post.body ?? "").split(/\s+/).filter(Boolean).length;
+const minutes = readingMinutes(post.body, data.readingTime);
+const toc = headings.filter((h) => h.depth === 2);
+
+const dateFmt = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+const shortFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+const published = data.pubDate;
+const modified = data.updatedDate && data.updatedDate > data.pubDate ? data.updatedDate : undefined;
+
+// Related services: explicit frontmatter first, then sensible defaults.
+const related = (data.services.length ? data.services : services.slice(0, 2).map((s) => s.slug))
+  .map((slug) => serviceBySlug(slug))
+  .filter((s): s is NonNullable<typeof s> => Boolean(s));
+const caseStudy = data.caseStudy ? caseBySlug(data.caseStudy) : undefined;
+
+// More articles: newest first, excluding this one.
+const others = (await getCollection("blogs", ({ data: d, id }) => !d.draft && id !== post.id))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map((p) => ({ ...p, minutes: readingMinutes(p.body, p.data.readingTime) }));
+
+const path = `/blogs/${post.id}/`;
+const url = abs(path);
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Blog", path: "/blogs/" },
+  { name: data.title, path },
+];
+
+const schema = [
+  {
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: data.title,
+    description: data.description,
+    datePublished: published.toISOString(),
+    dateModified: (modified ?? published).toISOString(),
+    author: { "@type": "Organization", "@id": ORG_ID, name: company.name, url: `${company.url}/` },
+    publisher: { "@id": ORG_ID },
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    url,
+    image: abs("/og.png"),
+    keywords: data.tags.join(", "),
+    articleSection: "Engineering",
+    inLanguage: "en-US",
+    wordCount,
+    timeRequired: `PT${minutes}M`,
+    isPartOf: [{ "@id": `${abs("/blogs/")}#blog` }, { "@id": WEBSITE_ID }],
+  },
+  breadcrumbSchema(crumbs),
+];
+
+// Long headlines read better without the brand suffix in search results.
+const rawTitle = data.title.length > 48;
+---
+<Base
+  title={data.title}
+  rawTitle={rawTitle}
+  description={data.description}
+  type="article"
+  publishedTime={published.toISOString()}
+  modifiedTime={(modified ?? published).toISOString()}
+  schema={schema}
+>
+  <header class="section post-hero">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="container post-hero-inner">
+      <Breadcrumbs items={crumbs} />
+      <ul class="tag-list" role="list" aria-label="Topics">
+        {data.tags.map((t) => <li class="tag">{t}</li>)}
+      </ul>
+      <h1 class="h1 post-title">{data.title}</h1>
+      <p class="lead">{data.description}</p>
+      <p class="meta">
+        <span>By {company.name}</span>
+        <span aria-hidden="true">·</span>
+        <time datetime={isoDate(published)}>{dateFmt.format(published)}</time>
+        {
+          modified && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                Updated <time datetime={isoDate(modified)}>{dateFmt.format(modified)}</time>
+              </span>
+            </>
+          )
+        }
+        <span aria-hidden="true">·</span>
+        <span>{minutes} min read</span>
+      </p>
+    </div>
+  </header>
+
+  <div class="container post-layout">
+    <article class="prose post-body" aria-label={data.title}>
+      <Content />
+    </article>
+
+    <aside class="post-side" aria-label="Article navigation and related services">
+      {
+        toc.length > 0 && (
+          <nav class="toc" aria-labelledby="toc-title">
+            <details open>
+              <summary id="toc-title" class="side-label">On this page</summary>
+              <ol role="list">
+                {toc.map((h) => (
+                  <li>
+                    <a href={`#${h.slug}`} data-toc-link={h.slug}>
+                      {h.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </nav>
+        )
+      }
+
+      <section class="related" aria-labelledby="related-title">
+        <h2 id="related-title" class="side-label">Related services</h2>
+        <ul role="list">
+          {related.map((s) => (
+            <li>
+              <a class="related-link" href={`/services/${s.slug}/`}>
+                <span class="related-icon">
+                  <Icon name={s.icon} size={18} />
+                </span>
+                <span>
+                  <span class="related-name">{s.title}</span>
+                  <span class="related-short">{s.short}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        {
+          caseStudy && (
+            <a class="link-arrow case-link" href={`/work/${caseStudy.slug}/`}>
+              Case study: {caseStudy.title} <Icon name="arrow" size={16} />
+            </a>
+          )
+        }
+      </section>
+    </aside>
+  </div>
+
+  {
+    others.length > 0 && (
+      <section class="section section--border more" aria-labelledby="more-title">
+        <div class="container">
+          <div class="more-head">
+            <h2 id="more-title" class="h3">More articles</h2>
+            <a class="link-arrow" href="/blogs/">
+              All articles <Icon name="arrow" size={16} />
+            </a>
+          </div>
+          <ul class="grid grid-3" role="list">
+            {others.map((p, i) => (
+              <li class="card card--hover spotlight post-card" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+                <p class="meta">
+                  <time datetime={isoDate(p.data.pubDate)}>{shortFmt.format(p.data.pubDate)}</time>
+                  <span aria-hidden="true">·</span>
+                  <span>{p.minutes} min read</span>
+                </p>
+                <h3 class="h3">
+                  <a class="stretched" href={`/blogs/${p.id}/`}>{p.data.title}</a>
+                </h3>
+                <p class="muted post-desc">{p.data.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <CtaBand />
+</Base>
+
+<script>
+  // Highlight the current section in the table of contents (progressive enhancement).
+  const links = document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]");
+  if (links.length && "IntersectionObserver" in window) {
+    const byId = new Map(Array.from(links, (a) => [a.dataset.tocLink ?? "", a]));
+    const setActive = (id: string) =>
+      links.forEach((a) => (a.dataset.tocLink === id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: "-80px 0px -70% 0px" }
+    );
+    byId.forEach((_a, id) => {
+      const el = id ? document.getElementById(id) : null;
+      if (el) io.observe(el);
+    });
+  }
+  // Keep the TOC open on desktop, collapsed by default on small screens.
+  const details = document.querySelector<HTMLDetailsElement>(".toc details");
+  if (details && window.matchMedia("(max-width: 1023px)").matches) details.open = false;
+</script>
+
+<style>
+  .post-hero {
+    overflow: hidden;
+    padding-block: calc(var(--section-y) * 0.7) var(--space-7);
+  }
+  .post-hero-inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+  .post-title {
+    max-width: 22ch;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  /* Layout: single column on mobile (TOC, body, related), two columns on desktop. */
+  .post-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding-bottom: var(--section-y);
+  }
+  .post-body {
+    order: 1;
+    min-width: 0;
+  }
+  .post-side {
+    display: contents;
+  }
+  .toc {
+    order: 0;
+  }
+  .related {
+    order: 2;
+  }
+
+  @media (min-width: 1024px) {
+    .post-layout {
+      grid-template-columns: minmax(0, 720px) minmax(240px, 300px);
+      justify-content: space-between;
+      gap: var(--space-8);
+    }
+    .post-side {
+      display: grid;
+      gap: var(--space-5);
+      align-content: start;
+      align-self: start;
+      position: sticky;
+      top: calc(var(--nav-h) + var(--space-5));
+      max-height: calc(100vh - var(--nav-h) - var(--space-7));
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .toc summary {
+      pointer-events: none;
+      list-style: none;
+    }
+    .toc summary::-webkit-details-marker {
+      display: none;
+    }
+    .toc summary::after {
+      display: none;
+    }
+  }
+
+  .side-label {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    line-height: 1.4;
+  }
+
+  /* Table of contents */
+  .toc {
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .toc summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    list-style: none;
+  }
+  .toc summary::-webkit-details-marker {
+    display: none;
+  }
+  .toc summary::after {
+    content: "+";
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .toc details[open] summary::after {
+    content: "−";
+  }
+  .toc ol {
+    display: grid;
+    gap: 2px;
+    margin-top: var(--space-4);
+    border-left: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    margin-left: -1px;
+    padding: 6px 0 6px var(--space-4);
+    border-left: 1px solid transparent;
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--text-3);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .toc a:hover {
+    color: var(--text);
+  }
+  .toc a[aria-current] {
+    color: var(--text);
+    border-left-color: var(--accent);
+  }
+
+  /* Related services */
+  .related {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+  }
+  .related ul {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .related-link {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    margin-inline: calc(var(--space-3) * -1);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+  }
+  .related-link:hover {
+    background: var(--surface-2);
+  }
+  .related-icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--accent);
+  }
+  .related-name {
+    display: block;
+    font-size: var(--fs-sm);
+    font-weight: 560;
+    color: var(--text);
+  }
+  .related-short {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    color: var(--text-3);
+  }
+  .case-link {
+    display: inline;
+    line-height: 1.5;
+  }
+  .case-link :global(svg) {
+    display: inline-block;
+    vertical-align: -3px;
+    margin-left: 4px;
+  }
+
+  /* Article body extras (Markdown output is not scoped, hence :global) */
+  .post-body :global(h2) {
+    scroll-margin-top: calc(var(--nav-h) + var(--space-5));
+  }
+  .post-body :global(h2#key-takeaways) {
+    margin-top: 2em;
+    font-size: var(--fs-xs);
+    font-family: var(--mono);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .post-body :global(h2#key-takeaways + ul) {
+    margin-top: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-5) calc(var(--space-5) + 1.1em);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .post-body :global(li::marker) {
+    color: var(--text-3);
+  }
+  .post-body :global(code) {
+    overflow-wrap: anywhere;
+  }
+
+  /* Code blocks: Astro's default Shiki output, aligned with the dark theme */
+  .post-body :global(pre) {
+    position: relative;
+    margin-block: 1.6em;
+    padding: calc(var(--space-6) + 4px) var(--space-5) var(--space-5);
+    color: var(--text);
+    tab-size: 4;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-2) transparent;
+  }
+  .post-body :global(pre[data-language])::before {
+    content: attr(data-language);
+    position: absolute;
+    top: 10px;
+    left: var(--space-5);
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .post-body :global(pre code) {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    font-size: inherit;
+    overflow-wrap: normal;
+  }
+
+  /* More articles */
+  .more-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .post-card {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  .post-desc {
+    font-size: var(--fs-sm);
+  }
+  .stretched::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .stretched:focus-visible {
+    outline: none;
+  }
+  .card:has(.stretched:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 480px) {
+    .post-body :global(pre) {
+      margin-inline: calc(clamp(16px, 4vw, 32px) * -1);
+      border-radius: 0;
+      border-inline: 0;
+    }
+  }
+</style>
